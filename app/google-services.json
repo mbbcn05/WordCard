@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "71116830192",
+    "project_id": "wordcard-fcf6c",
+    "storage_bucket": "wordcard-fcf6c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71116830192:android:bbdf6de42a215ea4321935",
+        "android_client_info": {
+          "package_name": "com.babacan05.wordcard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxx4xAY1w3gnZfFBVuUJtuC9iE9JAKxfs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
