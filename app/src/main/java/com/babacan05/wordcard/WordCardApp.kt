@@ -130,7 +130,7 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
                 //val state by viewModel.state.collectAsStateWithLifecycle()
                  CardSaveScreen(saveUser = {
                      viewModel.viewModelScope.launch {  viewModel.addUserToFirestore(googleAuthUiClient.getSignedInUser()!!.userId,"ali","veli")}
-                 })
+                 },viewModel.dataStateFlow.collectAsStateWithLifecycle().value)
 
 
             }
