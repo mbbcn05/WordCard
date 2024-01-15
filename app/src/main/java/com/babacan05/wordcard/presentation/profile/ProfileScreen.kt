@@ -19,7 +19,8 @@ import com.babacan05.wordcard.presentation.sign_in.UserData
 @Composable
 fun ProfileScreen(
     userData: UserData?,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    card_app: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -49,5 +50,11 @@ fun ProfileScreen(
         Button(onClick = onSignOut) {
             Text(text = "Sign out")
         }
-    }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = {card_app()
+        }) {
+            Text(text = "Lets Go")
+        }
+        }
+
 }
