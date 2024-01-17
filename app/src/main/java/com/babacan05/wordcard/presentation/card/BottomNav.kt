@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,7 +27,7 @@ import androidx.navigation.compose.rememberNavController
 
 sealed class BottomNavScreens(val route: String, val icon: ImageVector, val label: String) {
     object Home : BottomNavScreens("home", Icons.Default.Home, "Home")
-    object Dashboard : BottomNavScreens("dashboard", Icons.Default.Person, "Dashboard")
+    object Games : BottomNavScreens("games", Icons.Default.Star, "Games")
     object Notifications : BottomNavScreens("notifications", Icons.Default.Notifications, "Notifications")
     object Settings : BottomNavScreens("settings", Icons.Default.Settings, "Settings")
 }
@@ -99,9 +100,9 @@ fun BottomNav() {
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text(text = "Dashboard") },
-                    selected = currentRoute == BottomNavScreens.Dashboard.route,
+                    selected = currentRoute == BottomNavScreens.Games.route,
                     onClick = {
-                        navController.navigate(BottomNavScreens.Dashboard.route) {
+                        navController.navigate(BottomNavScreens.Games.route) {
                             launchSingleTop = true
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
@@ -151,7 +152,7 @@ fun BottomNav() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavScreens.Home.route) { HomeScreen() }
-            composable(BottomNavScreens.Dashboard.route) { DashboardScreen() }
+            composable(BottomNavScreens.Games.route) { DashboardScreen() }
             composable(BottomNavScreens.Notifications.route) { NotificationsScreen() }
             composable(BottomNavScreens.Settings.route) { SettingsScreen() }
         }
