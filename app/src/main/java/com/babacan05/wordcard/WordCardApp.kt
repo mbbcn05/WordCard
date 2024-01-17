@@ -13,7 +13,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -21,7 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.babacan05.wordcard.presentation.card.CardSaveScreen
+import com.babacan05.wordcard.presentation.card.BottomNav
 import com.babacan05.wordcard.presentation.card.CardViewModel
 import com.babacan05.wordcard.presentation.profile.ProfileScreen
 import com.babacan05.wordcard.presentation.sign_in.GoogleAuthUiClient
@@ -123,15 +122,11 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
             }
 
         }
-        navigation( startDestination = "card_screen",
+        navigation( startDestination = "app_screen",
             route = "word_card"){
-            composable("card_screen"){
+            composable("app_screen"){
                 val viewModel =  it.sharedViewModel<CardViewModel>(navController)
-                //val state by viewModel.state.collectAsStateWithLifecycle()
-                 CardSaveScreen(saveUser = {
-                     viewModel.viewModelScope.launch {  viewModel.addUserToFirestore(googleAuthUiClient.getSignedInUser()!!.userId,"ali","veli")}
-                 },viewModel.dataStateFlow.collectAsStateWithLifecycle().value)
-
+               BottomNav()
 
             }
 
