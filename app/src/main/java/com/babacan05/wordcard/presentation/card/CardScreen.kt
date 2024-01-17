@@ -5,8 +5,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 
 
-
-    @Composable
+@Composable
     fun CardSaveScreen(saveUser: () -> Unit, value: String){
 Button(onClick = saveUser
 ){

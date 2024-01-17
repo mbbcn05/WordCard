@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -16,9 +18,14 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -34,16 +41,34 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector, val labe
 
 @Composable
 fun HomeScreen() {
+    var showNewWordCardScreen by rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+
+        if (showNewWordCardScreen){
+
+            NewWordCardScreen(onFinish = {showNewWordCardScreen=false}, saveCard = {})
+        }else{
+
         Text(text = "Home screen")
+        FloatingActionButton(
+            onClick = {
+                showNewWordCardScreen=true
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.BottomEnd)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add")
+        }
+        }
     }
 }
 
 @Composable
-fun DashboardScreen() {
+fun GameScreen() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -98,8 +123,8 @@ fun BottomNav() {
 
                 // Dashboard Tab
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text(text = "Dashboard") },
+                    icon = { Icon(Icons.Default.Star, contentDescription = null) },
+                    label = { Text(text = "Games") },
                     selected = currentRoute == BottomNavScreens.Games.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Games.route) {
@@ -152,7 +177,7 @@ fun BottomNav() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavScreens.Home.route) { HomeScreen() }
-            composable(BottomNavScreens.Games.route) { DashboardScreen() }
+            composable(BottomNavScreens.Games.route) { GameScreen() }
             composable(BottomNavScreens.Notifications.route) { NotificationsScreen() }
             composable(BottomNavScreens.Settings.route) { SettingsScreen() }
         }
