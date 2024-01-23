@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.babacan05.wordcard.presentation.sign_in.UserData
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun ProfileScreen(
@@ -22,6 +25,7 @@ fun ProfileScreen(
     onSignOut: () -> Unit,
     card_app: () -> Unit,
 ) {
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,

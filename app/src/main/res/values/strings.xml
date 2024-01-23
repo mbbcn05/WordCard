@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WORDCARD</string>
+    <string name="app_name">WordCard</string>
     <string name="title_activity_main">MainActivity</string>
 
     <string name="default_web_client_id">71116830192-e7kajm43na1ov07256gvuudd418v73f8.apps.googleusercontent.com</string>

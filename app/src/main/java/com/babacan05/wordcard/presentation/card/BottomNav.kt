@@ -1,8 +1,11 @@
 package com.babacan05.wordcard.presentation.card
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.FloatingActionButton
@@ -13,19 +16,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -39,23 +42,36 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector, val labe
     object Settings : BottomNavScreens("settings", Icons.Default.Settings, "Settings")
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun HomeScreen() {
-    var showNewWordCardScreen by rememberSaveable { mutableStateOf(false) }
+fun HomeScreen(viewModel: CardViewModel, navController: NavHostController) {
+
+    var wordList=viewModel.wordcardstateFlow.collectAsStateWithLifecycle().value
+
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
 
-        if (showNewWordCardScreen){
 
-            NewWordCardScreen(onFinish = {showNewWordCardScreen=false}, saveCard = {})
-        }else{
 
-        Text(text = "Home screen")
-        FloatingActionButton(
+            LazyColumn{
+                items(wordList){
+
+
+
+                    WordCardItem(wordCard = it)
+
+
+                }
+
+}
+        
+            FloatingActionButton(
             onClick = {
-                showNewWordCardScreen=true
+                navController.navigate("NewCardScreen")
+
             },
             modifier = Modifier
                 .padding(16.dp)
@@ -65,7 +81,7 @@ fun HomeScreen() {
         }
         }
     }
-}
+
 
 @Composable
 fun GameScreen() {
@@ -97,8 +113,9 @@ fun SettingsScreen() {
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun BottomNav() {
+fun BottomNav(viewModel: CardViewModel) {
     val navController = rememberNavController()
 
     Scaffold(
@@ -171,15 +188,20 @@ fun BottomNav() {
             }
         }
     ) { innerPadding ->
+
         NavHost(
             navController = navController,
             startDestination = BottomNavScreens.Home.route,
             modifier = Modifier.padding(innerPadding)
+
         ) {
-            composable(BottomNavScreens.Home.route) { HomeScreen() }
+
+            composable(BottomNavScreens.Home.route) { HomeScreen(viewModel,navController)
+               }
             composable(BottomNavScreens.Games.route) { GameScreen() }
             composable(BottomNavScreens.Notifications.route) { NotificationsScreen() }
             composable(BottomNavScreens.Settings.route) { SettingsScreen() }
+            composable("NewCardScreen"){ NewWordCardScreen(onFinish ={navController.navigate(BottomNavScreens.Home.route) }, viewModel =viewModel)}
         }
     }
 }

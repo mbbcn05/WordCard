@@ -1,5 +1,6 @@
 package com.babacan05.wordcard
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,6 +27,7 @@ import com.babacan05.wordcard.presentation.profile.ProfileScreen
 import com.babacan05.wordcard.presentation.sign_in.GoogleAuthUiClient
 import com.babacan05.wordcard.presentation.sign_in.SignInScreen
 import com.babacan05.wordcard.presentation.sign_in.SignInViewModel
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 
@@ -34,6 +36,7 @@ import kotlinx.coroutines.launch
 
 
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
 
@@ -126,7 +129,10 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
             route = "word_card"){
             composable("app_screen"){
                 val viewModel =  it.sharedViewModel<CardViewModel>(navController)
-               BottomNav()
+
+               BottomNav(viewModel)
+
+
 
             }
 

@@ -1,5 +1,6 @@
 package com.babacan05.wordcard.presentation.card
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,14 +29,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
 import com.babacan05.wordcard.model.WordCard
+import kotlinx.coroutines.launch
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun NewWordCardScreen(onFinish: () -> Unit,saveCard: () -> Unit,wordCard: WordCard= WordCard()) {
+fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: WordCard= WordCard()) {
     var word by rememberSaveable { mutableStateOf(wordCard.word) }
     var translate by rememberSaveable { mutableStateOf(wordCard.translate) }
     var sampleSentence by rememberSaveable { mutableStateOf(wordCard.sentence) }
     var synonyms by rememberSaveable { mutableStateOf(wordCard.synonyms) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -68,7 +73,7 @@ fun NewWordCardScreen(onFinish: () -> Unit,saveCard: () -> Unit,wordCard: WordCa
                     isError = word.isEmpty(),
                     value = word,
                     onValueChange = {
-                        word = it.filter { it.isLetter() }.uppercase()
+                        word = it.filter { it.isWhitespace()||it.isLetter()  }.lowercase()
                     },
                     label = { Text("Enter a new word ") },
                     singleLine = true,
@@ -81,7 +86,7 @@ fun NewWordCardScreen(onFinish: () -> Unit,saveCard: () -> Unit,wordCard: WordCa
                     keyboardActions = KeyboardActions(onNext = null),isError = translate.isEmpty(),
                     value = translate,
                     onValueChange = {
-                        translate = it.filter { it.isLetter() }.uppercase()
+                        translate = it.filter { it.isWhitespace()|| it.isLetter()}.lowercase()
                     },
                     label = { Text("Enter a translate") },
                     singleLine = true,
@@ -94,7 +99,7 @@ fun NewWordCardScreen(onFinish: () -> Unit,saveCard: () -> Unit,wordCard: WordCa
                     keyboardActions = KeyboardActions(onNext = null),
                     value = sampleSentence,
                     onValueChange = {
-                        sampleSentence = it.filter { it.isLetter() }.uppercase()
+                        sampleSentence = it.filter { it.isWhitespace()|| it.isLetter() }.lowercase()
                     },
                     label = { Text("Enter a sample sentence") },
                     singleLine = true,
@@ -107,7 +112,7 @@ fun NewWordCardScreen(onFinish: () -> Unit,saveCard: () -> Unit,wordCard: WordCa
                     keyboardActions = KeyboardActions(onNext = null),
                     value = synonyms,
                     onValueChange = {
-                        synonyms =it.filter { it.isLetter() }.uppercase()
+                        synonyms =it.filter { it.isWhitespace()|| it.isLetter() }.lowercase()
                     },
                     label = { Text("Enter a synonym") },
                     singleLine = true,
@@ -118,8 +123,31 @@ fun NewWordCardScreen(onFinish: () -> Unit,saveCard: () -> Unit,wordCard: WordCa
 
                 Button(enabled = !word.isEmpty()&&!translate.isEmpty(), modifier=Modifier.fillMaxWidth(),
                     onClick = {
-                        saveCard()
-                        onFinish()
+                        viewModel.viewModelScope.launch {
+
+
+
+                            viewModel.addWordCard(
+                                WordCard(
+                                    word = word.trim(),
+                                    translate = translate.trim(),
+                                    sentence = sampleSentence.trim(),
+                                    synonyms = synonyms.trim()
+                                )
+                            )
+
+
+                        }
+                    onFinish()
+
+
+
+
+
+
+
+
+
                     }
                 ) {
                     Text("Save WordCard")
