@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.FloatingActionButton
@@ -33,6 +35,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.babacan05.wordcard.model.WordCard
 
 
 sealed class BottomNavScreens(val route: String, val icon: ImageVector, val label: String) {
@@ -44,7 +47,7 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector, val labe
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun HomeScreen(viewModel: CardViewModel, navController: NavHostController) {
+fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
 
     var wordList=viewModel.wordcardstateFlow.collectAsStateWithLifecycle().value
 
@@ -55,13 +58,15 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController) {
     ) {
 
 
-
-            LazyColumn{
+            LazyColumn(state = state){
                 items(wordList){
 
 
 
-                    WordCardItem(wordCard = it)
+                    WordCardItem(wordCard = it) {
+                        viewModel.updateViewingWordCard(it)
+            navController.navigate("WordCardViewScreen")
+                    }
 
 
                 }
@@ -70,6 +75,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController) {
         
             FloatingActionButton(
             onClick = {
+                viewModel.updateViewingWordCard(WordCard())
                 navController.navigate("NewCardScreen")
 
             },
@@ -188,7 +194,7 @@ fun BottomNav(viewModel: CardViewModel) {
             }
         }
     ) { innerPadding ->
-
+        val lazyListState = rememberLazyListState()
         NavHost(
             navController = navController,
             startDestination = BottomNavScreens.Home.route,
@@ -196,12 +202,27 @@ fun BottomNav(viewModel: CardViewModel) {
 
         ) {
 
-            composable(BottomNavScreens.Home.route) { HomeScreen(viewModel,navController)
+
+            composable(BottomNavScreens.Home.route) {
+
+                HomeScreen(viewModel,navController,lazyListState)
                }
             composable(BottomNavScreens.Games.route) { GameScreen() }
             composable(BottomNavScreens.Notifications.route) { NotificationsScreen() }
             composable(BottomNavScreens.Settings.route) { SettingsScreen() }
-            composable("NewCardScreen"){ NewWordCardScreen(onFinish ={navController.navigate(BottomNavScreens.Home.route) }, viewModel =viewModel)}
+            composable("NewCardScreen") {
+
+                NewWordCardScreen(
+                    onFinish = { navController.navigate(BottomNavScreens.Home.route)
+                               },
+                    viewModel = viewModel,
+                    wordCard = viewModel.viewingWorCard.value
+                )
+            }
+            composable("WordCardViewScreen"){ WordCardViewScreen(
+                onFinish = {navController.navigate(BottomNavScreens.Home.route)},
+                wordCard = viewModel.viewingWorCard.value,
+                editClick = { navController.navigate("NewCardScreen") })}
         }
     }
 }

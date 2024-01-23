@@ -24,6 +24,8 @@ class CardViewModel :ViewModel() {
 private val _wordIdStateFlow= MutableStateFlow<List<String>>(value = emptyList())
     val wordIdStateFlow: StateFlow<List<String>> get() = _wordIdStateFlow.asStateFlow()
     val wordcardstateFlow: StateFlow<List<WordCard>> get() = _wordcardstateFlow.asStateFlow()
+    private val _viewingWorCard = MutableStateFlow(value = WordCard())
+    val viewingWorCard: StateFlow<WordCard> get() = _viewingWorCard.asStateFlow()
 
 
     private val db = FirebaseFirestore.getInstance()
@@ -40,11 +42,8 @@ private val _wordIdStateFlow= MutableStateFlow<List<String>>(value = emptyList()
 
 
     }
-   fun addWordCardsOfflineMode(){
-
-
-
-
+   fun updateViewingWordCard(wordCard: WordCard){
+_viewingWorCard.value=wordCard
    }
 
 

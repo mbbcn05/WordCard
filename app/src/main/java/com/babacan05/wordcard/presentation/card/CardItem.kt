@@ -1,5 +1,6 @@
 package com.babacan05.wordcard.presentation.card
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Card
@@ -13,10 +14,11 @@ import androidx.compose.ui.unit.dp
 import com.babacan05.wordcard.model.WordCard
 
 @Composable
-fun WordCardItem(wordCard: WordCard) {
+fun WordCardItem(wordCard: WordCard,onClick:()->Unit) {
 
     Card(
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(8.dp)
+            .clickable { onClick()  },
         backgroundColor = Color.LightGray,
     ) {
         Column(
