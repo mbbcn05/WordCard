@@ -27,12 +27,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.babacan05.wordcard.model.WordCard
+import kotlinx.coroutines.launch
 
 
 sealed class BottomNavScreens(val route: String, val icon: ImageVector, val label: String) {
@@ -125,7 +127,8 @@ fun BottomNav(viewModel: CardViewModel) {
         bottomBar = {
             BottomNavigation {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute =navBackStackEntry?.arguments?.getString("androidx.navigation.dynamicfeatures.FragmentNavigator.Destination")
+                val currentRoute =
+                    navBackStackEntry?.arguments?.getString("androidx.navigation.dynamicfeatures.FragmentNavigator.Destination")
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
                     label = { Text(text = "Home") },
@@ -202,24 +205,28 @@ fun BottomNav(viewModel: CardViewModel) {
 
             composable(BottomNavScreens.Home.route) {
 
-                HomeScreen(viewModel,navController,lazyListState)
-               }
+                HomeScreen(viewModel, navController, lazyListState)
+            }
             composable(BottomNavScreens.Games.route) { GameScreen() }
             composable(BottomNavScreens.Notifications.route) { NotificationsScreen() }
             composable(BottomNavScreens.Settings.route) { SettingsScreen() }
             composable("NewCardScreen") {
 
                 NewWordCardScreen(
-                    onFinish = { navController.navigate(BottomNavScreens.Home.route)
-                               },
+                    onFinish = {
+                        navController.navigate(BottomNavScreens.Home.route)
+                    },
                     viewModel = viewModel,
                     wordCard = viewModel.viewingWorCard.value
                 )
             }
-            composable("WordCardViewScreen"){ WordCardViewScreen(
-                onFinish = {navController.navigate(BottomNavScreens.Home.route)},
-                wordCard = viewModel.viewingWorCard.value,
-                editClick = { navController.navigate("NewCardScreen") })}
+            composable("WordCardViewScreen") {
+                WordCardViewScreen(
+                    onFinish = { navController.navigate(BottomNavScreens.Home.route) },
+                    wordCard = viewModel.viewingWorCard.value,
+                    editClick = { navController.navigate("NewCardScreen") }
+                ) { viewModel.viewModelScope.launch { viewModel.deleteWordCard(viewModel.viewingWorCard.value.documentId) } }
+            }
         }
     }
 }

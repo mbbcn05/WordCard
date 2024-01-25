@@ -127,13 +127,16 @@ fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: Wo
 
 
 
-                            viewModel.addWordCard(
+                            viewModel.saveWordCard(
                                 WordCard(
                                     word = word.trim(),
                                     translate = translate.trim(),
                                     sentence = sampleSentence.trim(),
-                                    synonyms = synonyms.trim()
-                                )
+                                    synonyms = synonyms.trim(),
+documentId = wordCard.documentId,
+                                    creatorId = wordCard.creatorId
+                                ),
+                                viewModel.wordCardUserId==wordCard.creatorId
                             )
 
 

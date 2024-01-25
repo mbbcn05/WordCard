@@ -7,6 +7,7 @@ import com.babacan05.wordcard.model.WordCard
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -21,12 +22,16 @@ import kotlin.coroutines.suspendCoroutine
 
 class CardViewModel :ViewModel() {
     private val _wordcardstateFlow = MutableStateFlow<List<WordCard>>(value = emptyList())
-private val _wordIdStateFlow= MutableStateFlow<List<String>>(value = emptyList())
+    private val _wordIdStateFlow = MutableStateFlow<List<String>>(value = emptyList())
     val wordIdStateFlow: StateFlow<List<String>> get() = _wordIdStateFlow.asStateFlow()
     val wordcardstateFlow: StateFlow<List<WordCard>> get() = _wordcardstateFlow.asStateFlow()
     private val _viewingWorCard = MutableStateFlow(value = WordCard())
     val viewingWorCard: StateFlow<WordCard> get() = _viewingWorCard.asStateFlow()
 
+    val wordCardUserId: String?
+        get() {
+            return getUserId()
+        }
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -35,16 +40,37 @@ private val _wordIdStateFlow= MutableStateFlow<List<String>>(value = emptyList()
         viewModelScope.launch {
             checkUserwordList()
 
-            //getWordCardIds()  checkUserwordlist içine konuldu böylece list oluşumu tamamlandığında çalışacak
 
-            //updateCards()  wordcardidler alındığıkça çaprılıyor böylece idlist gücellemesi olduğunda card uptate garanti oldu
         }
 
 
     }
-   fun updateViewingWordCard(wordCard: WordCard){
-_viewingWorCard.value=wordCard
-   }
+
+    fun updateViewingWordCard(wordCard: WordCard) {
+        _viewingWorCard.value = wordCard
+    }
+
+    fun deleteWordCard(wordcardId: String) {
+
+        wordCardUserId?.let {
+            val userRef = db.collection("users").document(it)
+            userRef.update("wordIdList", FieldValue.arrayRemove(wordcardId))
+                .addOnSuccessListener {
+                    println("Veri başarıyla eklendi.")
+                }
+                .addOnFailureListener { e ->
+                    println("Veri eklenirken bir hata oluştu: $e")
+                }
+        }
+
+
+    }
+
+
+
+
+
+
 
 
 suspend fun updateCards(){
@@ -67,6 +93,49 @@ suspend fun updateCards(){
 
         }
     }
+    suspend fun saveWordCard(wordcard:WordCard, creator:Boolean){
+    if(!creator){
+        addWordCard(wordcard)
+
+    }else{
+
+        updateWordCard(wordcard)
+
+    }
+
+
+
+
+}
+    fun updateWordCard(wordCard: WordCard) {
+
+
+        try {
+            val userId = getUserId()
+            userId?.let {
+                if (!wordCard.documentId.isNullOrBlank()) {
+                    // Firestore update operation
+                    db.collection("wordcards")
+                        .document(wordCard.documentId)
+                        .set(wordCard)
+                        .addOnSuccessListener {
+                            println("Belge başarıyla güncellendi.")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Belge güncelleme hatası: $e")
+                        }
+                } else {
+                    println("Document ID is null or empty.")
+                }
+            }
+        } catch (e: Exception) {
+            println("Bir hata oluştu: $e")
+            // Handle the exception as needed
+        }
+
+
+ }
+
 
     private fun getWordIdList(): Flow<List<String>> = callbackFlow {
         val userId = getUserId()
@@ -182,7 +251,7 @@ private fun checkIsThereAnyWordCard(wordCard:WordCard,callback: (String?) -> Uni
     suspend fun addWordCard(wordCard: WordCard) {
         val wordcardsCollection = db.collection("wordcards")
         val userId = getUserId()
-        val returningWordCardId = suspendCoroutine { continuation ->
+        val returningWordCardId = suspendCoroutine { continuation ->//bu hazırda var olabilecek yapılmış wordid
             checkIsThereAnyWordCard(wordCard) { returningCard ->
                 continuation.resume(returningCard)
             }
@@ -197,10 +266,23 @@ private fun checkIsThereAnyWordCard(wordCard:WordCard,callback: (String?) -> Uni
             }
                 }else {
             if (userId != null) {
-                wordcardsCollection.add(wordCard.copy(creatorId =userId))
+                wordcardsCollection.add(wordCard)
                     .addOnSuccessListener { documentReference ->
+
                         // Eklenen belge (document) ID'sini alın
                         val wordId = documentReference.id
+                        userId?.let {
+                            db.collection("wordcards")
+                                .document(wordId)
+                                .set(wordCard.copy(documentId = wordId, creatorId = userId))
+                                .addOnSuccessListener {
+                                    println("Belge başarıyla güncellendi.")
+                                }
+                                .addOnFailureListener { e ->
+                                    println("Belge güncelleme hatası: $e")
+                                }
+                        }
+
                         viewModelScope.launch { addWordtoUser(userId, wordId) }//bu ıd zaten var mı kontrol et
                     }
                     .addOnFailureListener { e ->
@@ -208,7 +290,7 @@ private fun checkIsThereAnyWordCard(wordCard:WordCard,callback: (String?) -> Uni
                     }
             }
         }
-
+        viewModelScope.launch {deleteWordCard(_viewingWorCard.value.documentId)}
 
     }
 
