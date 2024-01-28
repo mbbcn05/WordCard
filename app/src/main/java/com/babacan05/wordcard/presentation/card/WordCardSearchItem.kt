@@ -12,13 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.babacan05.wordcard.model.WordCard
 
 @Composable
-fun WordCardItem(wordCard: WordCard,onClick:()->Unit) {
+fun WordCardSearchItem(wordCard: WordCard,onClick:()->Unit) {
 
     Card(
         modifier = Modifier.padding(8.dp)
@@ -46,7 +47,7 @@ fun WordCardItem(wordCard: WordCard,onClick:()->Unit) {
                 )
                 Text(
                     text = wordCard.translate,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    fontStyle = FontStyle.Italic,
                 )
             }
         }

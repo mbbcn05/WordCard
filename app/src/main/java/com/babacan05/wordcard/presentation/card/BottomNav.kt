@@ -1,30 +1,46 @@
 package com.babacan05.wordcard.presentation.card
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -47,54 +63,133 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector, val labe
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
+    val context: Context = LocalContext.current
+    var wordList = viewModel.wordcardstateFlow.collectAsStateWithLifecycle().value
+    var searchQuery by remember { mutableStateOf("") }
+    val offlinelist=viewModel.offlineWordCards.collectAsStateWithLifecycle().value
+    val collectedList by remember(wordList,offlinelist) {
+        derivedStateOf {
+           wordList+offlinelist
+        }
+    }
 
-    var wordList=viewModel.wordcardstateFlow.collectAsStateWithLifecycle().value
-
+    val filteredWordList by remember(collectedList, searchQuery) {
+        derivedStateOf {
+           viewModel.filterWordList(collectedList, searchQuery)
+       }
+    }
+    LaunchedEffect(key1=true) {
+viewModel.updateCards()
+       // viewModel.listenOfflineWordCards()
+    }
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Search TextField
+            OutlinedTextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
+                keyboardType= KeyboardType.Text, imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onNext = null),
+                value = searchQuery,
+                onValueChange = {
+                    searchQuery = it
 
-            LazyColumn(state = state){
-                items(wordList){
+                },
+                singleLine = true,
+                label = { Text("Search") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+            LazyColumn(state = state) {
+                items(filteredWordList) {
 
 
 
                     WordCardItem(wordCard = it) {
                         viewModel.updateViewingWordCard(it)
-            navController.navigate("WordCardViewScreen")
+                        navController.navigate("WordCardViewScreen")
                     }
 
 
                 }
 
-}
-        
-            FloatingActionButton(
-            onClick = {
-                viewModel.updateViewingWordCard(WordCard())
-                navController.navigate("NewCardScreen")
+            }
 
-            },
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.BottomEnd)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add")
-        }
+
+            FloatingActionButton(
+                onClick = {
+                    viewModel.updateViewingWordCard(WordCard())
+                    navController.navigate("NewCardScreen")
+
+                },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.End)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+            }
         }
     }
-
+}
 
 @Composable
-fun GameScreen() {
+fun GameScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
+
+    var wordList = viewModel.wordcardSearchstateFlow.collectAsStateWithLifecycle().value
+    var searchQuery by remember { mutableStateOf("") }
+    LaunchedEffect(key1 = searchQuery) {
+    viewModel.searchWordCardOnline(searchQuery)
+}
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Dashboard screen")
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Search TextField
+            OutlinedTextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
+                keyboardType= KeyboardType.Text, imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onNext = null),
+                value = searchQuery,
+                onValueChange = {
+                    searchQuery = it
+                    //viewModel.searchWordCardOnline(it)
+
+                },
+                singleLine = true,
+                label = { Text("Search") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+            LazyColumn(state = state) {
+                items(wordList) {
+
+
+
+                    WordCardSearchItem(wordCard = it) {
+                        viewModel.updateViewingWordCard(it)
+                        navController.navigate("WordCardSearchViewScreen")
+                    }
+
+
+                }
+
+            }
+
+        }
     }
 }
 
@@ -118,6 +213,7 @@ fun SettingsScreen() {
     }
 }
 
+
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun BottomNav(viewModel: CardViewModel) {
@@ -131,7 +227,7 @@ fun BottomNav(viewModel: CardViewModel) {
                     navBackStackEntry?.arguments?.getString("androidx.navigation.dynamicfeatures.FragmentNavigator.Destination")
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text(text = "Home") },
+                    label = {  },
                     selected = currentRoute == BottomNavScreens.Home.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Home.route) {
@@ -146,8 +242,8 @@ fun BottomNav(viewModel: CardViewModel) {
 
                 // Dashboard Tab
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Star, contentDescription = null) },
-                    label = { Text(text = "Games") },
+                    icon = {   Icon(Icons.Default.Search, contentDescription = null)},
+                    label = { },
                     selected = currentRoute == BottomNavScreens.Games.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Games.route) {
@@ -163,7 +259,7 @@ fun BottomNav(viewModel: CardViewModel) {
                 // Notifications Tab
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Notifications, contentDescription = null) },
-                    label = { Text(text = "Notifications") },
+                    label = { },
                     selected = currentRoute == BottomNavScreens.Notifications.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Notifications.route) {
@@ -179,7 +275,7 @@ fun BottomNav(viewModel: CardViewModel) {
                 // Settings Tab
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    label = { Text(text = "Settings") },
+                    label = {  },
                     selected = currentRoute == BottomNavScreens.Settings.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Settings.route) {
@@ -195,6 +291,7 @@ fun BottomNav(viewModel: CardViewModel) {
         }
     ) { innerPadding ->
         val lazyListState = rememberLazyListState()
+        val lazyListSearchState = rememberLazyListState()
         NavHost(
             navController = navController,
             startDestination = BottomNavScreens.Home.route,
@@ -207,7 +304,7 @@ fun BottomNav(viewModel: CardViewModel) {
 
                 HomeScreen(viewModel, navController, lazyListState)
             }
-            composable(BottomNavScreens.Games.route) { GameScreen() }
+            composable(BottomNavScreens.Games.route) { GameScreen(viewModel,navController,lazyListSearchState) }
             composable(BottomNavScreens.Notifications.route) { NotificationsScreen() }
             composable(BottomNavScreens.Settings.route) { SettingsScreen() }
             composable("NewCardScreen") {
@@ -223,9 +320,19 @@ fun BottomNav(viewModel: CardViewModel) {
             composable("WordCardViewScreen") {
                 WordCardViewScreen(
                     onFinish = { navController.navigate(BottomNavScreens.Home.route) },
+                    viewModel = viewModel,
                     wordCard = viewModel.viewingWorCard.value,
                     editClick = { navController.navigate("NewCardScreen") }
-                ) { viewModel.viewModelScope.launch { viewModel.deleteWordCard(viewModel.viewingWorCard.value.documentId) } }
+                ) { viewModel.viewModelScope.launch { viewModel.deleteWordCard(viewModel.viewingWorCard.value.documentId)
+
+                } }
+            }
+            composable("WordCardSearchViewScreen"){
+               WordCardSearchViewScreen(
+                   wordCard = viewModel.viewingWorCard.value,
+                   onFinish = { navController.navigate(BottomNavScreens.Home.route)},
+                   saveClick = {  viewModel.wordCardUserId?.let {word->viewModel.viewModelScope.launch { viewModel.addWordtoUser(word,viewModel.viewingWorCard.value.documentId) }}})
+
             }
         }
     }

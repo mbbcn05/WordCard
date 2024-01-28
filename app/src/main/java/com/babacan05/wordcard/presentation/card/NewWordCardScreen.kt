@@ -1,6 +1,7 @@
 package com.babacan05.wordcard.presentation.card
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -40,7 +42,7 @@ fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: Wo
     var translate by rememberSaveable { mutableStateOf(wordCard.translate) }
     var sampleSentence by rememberSaveable { mutableStateOf(wordCard.sentence) }
     var synonyms by rememberSaveable { mutableStateOf(wordCard.synonyms) }
-
+var context: Context =LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -133,10 +135,10 @@ fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: Wo
                                     translate = translate.trim(),
                                     sentence = sampleSentence.trim(),
                                     synonyms = synonyms.trim(),
-documentId = wordCard.documentId,
+                            documentId = wordCard.documentId,
                                     creatorId = wordCard.creatorId
                                 ),
-                                viewModel.wordCardUserId==wordCard.creatorId
+                                viewModel.wordCardUserId==wordCard.creatorId, context
                             )
 
 

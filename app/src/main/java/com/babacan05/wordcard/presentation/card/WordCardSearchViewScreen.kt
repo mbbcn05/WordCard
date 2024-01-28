@@ -1,4 +1,6 @@
+
 package com.babacan05.wordcard.presentation.card
+
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +20,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,16 +29,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.babacan05.wordcard.model.WordCard
-import kotlinx.coroutines.Job
 
 @Composable
-fun WordCardViewScreen(
+fun WordCardSearchViewScreen(
     wordCard: WordCard,
-    viewModel: CardViewModel,
     onFinish: () -> Unit,
-    editClick: () -> Unit,
+    saveClick: () -> Unit,
     modifier: Modifier = Modifier,
-    deleteClick: () -> Job,
 
 ) {
     Card(
@@ -103,34 +103,21 @@ fun WordCardViewScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+
                         Button(
-                            onClick = editClick,
+                            onClick = {onFinish()
+                                saveClick()},
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp)
                         ) {
-                            Text(text = "Edit Card")
+                            Text(text = "Save Card")
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
 
-                        Button(
-                            onClick = {
 
-                                deleteClick()
-                                onFinish()
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                        ) {
-                            Text(text = "Delete Card")
-                        }
-                    }
+
+
                 }
             }
         }
