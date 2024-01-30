@@ -2,6 +2,7 @@ package com.babacan05.wordcard.presentation.card
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,7 +66,8 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector, val labe
 @Composable
 fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
     val context: Context = LocalContext.current
-    var wordList = viewModel.wordcardstateFlow.collectAsStateWithLifecycle().value
+    val wordList = viewModel.wordcardstateFlow.collectAsStateWithLifecycle().value
+    var checkingmigratewords by remember { mutableIntStateOf(0 ) }
     var searchQuery by remember { mutableStateOf("") }
     val offlinelist=viewModel.offlineWordCards.collectAsStateWithLifecycle().value
     val collectedList by remember(wordList,offlinelist) {
@@ -78,9 +81,15 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
            viewModel.filterWordList(collectedList, searchQuery)
        }
     }
-    LaunchedEffect(key1=true) {
-viewModel.updateCards()
-       // viewModel.listenOfflineWordCards()
+    LaunchedEffect(true) {
+
+        viewModel.updateCards()
+
+
+
+    }
+    LaunchedEffect(key1 =checkingmigratewords){
+       viewModel.migrateCardsIntoOnline(context,offlinelist)
     }
 
     Box(
@@ -88,7 +97,7 @@ viewModel.updateCards()
         contentAlignment = Alignment.Center
     ) {
 
-        Column(
+        Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
@@ -103,7 +112,7 @@ viewModel.updateCards()
 
                 },
                 singleLine = true,
-                label = { Text("Search") },
+                label = { Text("Search in Your Words") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
@@ -113,7 +122,8 @@ viewModel.updateCards()
 
 
 
-                    WordCardItem(wordCard = it) {
+                    WordCardItem(wordCard = it, modifier = Modifier.fillMaxSize()) {
+            checkingmigratewords++
                         viewModel.updateViewingWordCard(it)
                         navController.navigate("WordCardViewScreen")
                     }
@@ -124,18 +134,20 @@ viewModel.updateCards()
             }
 
 
-            FloatingActionButton(
-                onClick = {
-                    viewModel.updateViewingWordCard(WordCard())
-                    navController.navigate("NewCardScreen")
 
-                },
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.End)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
+        }
+        FloatingActionButton(
+            onClick = {
+                checkingmigratewords++
+                viewModel.updateViewingWordCard(WordCard())
+                navController.navigate("NewCardScreen")
+
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(alignment = Alignment.BottomEnd)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add")
         }
     }
 }
@@ -143,7 +155,7 @@ viewModel.updateCards()
 @Composable
 fun GameScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
 
-    var wordList = viewModel.wordcardSearchstateFlow.collectAsStateWithLifecycle().value
+    val wordList = viewModel.wordcardSearchstateFlow.collectAsStateWithLifecycle().value
     var searchQuery by remember { mutableStateOf("") }
     LaunchedEffect(key1 = searchQuery) {
     viewModel.searchWordCardOnline(searchQuery)
@@ -169,7 +181,7 @@ fun GameScreen(viewModel: CardViewModel, navController: NavHostController,state:
 
                 },
                 singleLine = true,
-                label = { Text("Search") },
+                label = { Text("Search in Online") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)

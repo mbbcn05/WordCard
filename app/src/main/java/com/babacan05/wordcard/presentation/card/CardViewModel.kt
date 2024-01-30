@@ -4,22 +4,20 @@ package com.babacan05.wordcard.presentation.card
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.babacan05.wordcard.common.MySharedPreferences
 import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
@@ -63,7 +61,7 @@ class CardViewModel :ViewModel() {
           db.collection("users").document(wordCardUserId!!).collection("offlinewordcards")
               .document(viewingWorCard.value.documentId).delete().await()
 
-          wordCardUserId?.let {
+          wordCardUserId.let {
               val userRef = db.collection("users").document(it)
               userRef.update("wordIdList", FieldValue.arrayRemove(wordcardId))
                   .addOnSuccessListener {
@@ -108,7 +106,7 @@ class CardViewModel :ViewModel() {
 
 
 
-        if(viewingWorCard.value.addingMode=="online"){
+        if(isInternetAvailable(context) &&viewingWorCard.value.addingMode!="offline"){
 
 
             if (!creator) {
@@ -126,7 +124,7 @@ class CardViewModel :ViewModel() {
     }
 
     private fun updateofflineWordCard(wordcard: WordCard) {
-        if (wordCardUserId != null && wordcard != null) {
+        if (wordCardUserId != null) {
             db.collection("users").document(wordCardUserId)
                 .collection("offlinewordcards").document(wordcard.documentId)
                 .set(wordcard)
@@ -139,7 +137,7 @@ class CardViewModel :ViewModel() {
         try {
             val userId = getUserId()
             userId?.let {
-                if (!wordCard.documentId.isNullOrBlank()) {
+                if (wordCard.documentId.isNotBlank()) {
                     // Firestore update operation
                     db.collection("wordcards")
                         .document(wordCard.documentId)
@@ -501,7 +499,23 @@ class CardViewModel :ViewModel() {
 
         }
     }
+     suspend fun migrateCardsIntoOnline(context: Context,wordList:List<WordCard>){
+
+        if(isInternetAvailable(context = context)&& wordList.isNotEmpty()) {
+        val deletingwordList=wordList.map { it }.toList()
+        for (wordcard in deletingwordList){
+            print("işlem"+wordcard.documentId)
+            _viewingWorCard.value= WordCard()
+            saveWordCard(wordcard.copy(addingMode = "online"),false, context = context)
+            db.collection("users").document(wordCardUserId!!).collection("offlinewordcards")
+                .document(wordcard.documentId).delete().await()
+            delay(1000)
+
+
+        }
+
+        }
+
+    }
 
 }
-
-
