@@ -42,6 +42,9 @@ fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: Wo
     var translate by rememberSaveable { mutableStateOf(wordCard.translate) }
     var sampleSentence by rememberSaveable { mutableStateOf(wordCard.sentence) }
     var synonyms by rememberSaveable { mutableStateOf(wordCard.synonyms) }
+    var imageUrl by rememberSaveable {
+        mutableStateOf(wordCard.imageUrl)
+    }
 var context: Context =LocalContext.current
     Column(
         modifier = Modifier
@@ -122,7 +125,12 @@ var context: Context =LocalContext.current
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+                ImagePicker (LocalContext.current){ uri ->
+                    viewModel.viewModelScope.launch {
+                         imageUrl=viewModel.uploadImageToCloud(uri)
 
+                    }
+                }
                 Button(enabled = !word.isEmpty()&&!translate.isEmpty(), modifier=Modifier.fillMaxWidth(),
                     onClick = {
                         viewModel.viewModelScope.launch {
@@ -136,7 +144,8 @@ var context: Context =LocalContext.current
                                     sentence = sampleSentence.trim(),
                                     synonyms = synonyms.trim(),
                             documentId = wordCard.documentId,
-                                    creatorId = wordCard.creatorId
+                                    creatorId = wordCard.creatorId,
+                                    imageUrl = imageUrl
                                 ),
                                 viewModel.wordCardUserId==wordCard.creatorId, context
                             )

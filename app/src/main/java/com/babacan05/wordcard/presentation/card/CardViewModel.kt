@@ -1,16 +1,23 @@
 package com.babacan05.wordcard.presentation.card
 
 
+
+import com.google.firebase.ktx.Firebase
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.babacan05.wordcard.common.MySharedPreferences
 import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
+import com.google.firebase.FirebaseError
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -38,8 +46,8 @@ class CardViewModel :ViewModel() {
 
 
     private val db = FirebaseFirestore.getInstance()
-
-
+//val storage=Firebase.storage
+    val storage = FirebaseStorage.getInstance()
 
     init {
         viewModelScope.launch {
@@ -50,6 +58,38 @@ class CardViewModel :ViewModel() {
 
     }
 
+    suspend fun uploadImageToCloud(imageByteArray: ByteArray):String {
+
+
+        // Resmi Firestore Storage'a yükleyin (Opsiyonel)
+        val storageRef = storage.reference.child("images/${UUID.randomUUID()}.jpg")
+        val uploadTask = storageRef.putBytes(imageByteArray)
+
+        try {
+            // Yükleme işlemi tamamlandığında
+            val uploadResult = uploadTask.await()
+
+            // Resmin indirme URL'sini alın
+            val downloadUrl = storageRef.downloadUrl.await()
+
+
+
+
+           return downloadUrl.toString()
+        }
+        catch (e: StorageException) {
+            val innerException = e.cause
+            println("Inner Exception: ${innerException?.message}")
+            println("HTTP Result Code: ${e.httpResultCode}")
+            e.printStackTrace()
+            return ""
+        }catch (e: Exception) {
+            println("Resim yüklenirken hata oluştu: $e")
+            e.printStackTrace() // Hata ayrıntılarını ekrana bas
+            println("Hata Mesajı: ${e.message}")
+            return ""
+        }
+    }
     fun updateViewingWordCard(wordCard: WordCard) {
         _viewingWorCard.value = wordCard
     }

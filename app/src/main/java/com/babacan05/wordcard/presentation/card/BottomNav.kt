@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,6 +52,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.babacan05.wordcard.R
 import com.babacan05.wordcard.model.WordCard
 import kotlinx.coroutines.launch
 
@@ -122,7 +124,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
 
 
 
-                    WordCardItem(wordCard = it, modifier = Modifier.fillMaxSize()) {
+                    WordCardItem(wordCard = it) {
             checkingmigratewords++
                         viewModel.updateViewingWordCard(it)
                         navController.navigate("WordCardViewScreen")
@@ -239,7 +241,7 @@ fun BottomNav(viewModel: CardViewModel) {
                     navBackStackEntry?.arguments?.getString("androidx.navigation.dynamicfeatures.FragmentNavigator.Destination")
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = {  },
+                    label = { "" },
                     selected = currentRoute == BottomNavScreens.Home.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Home.route) {
@@ -254,8 +256,8 @@ fun BottomNav(viewModel: CardViewModel) {
 
                 // Dashboard Tab
                 BottomNavigationItem(
-                    icon = {   Icon(Icons.Default.Search, contentDescription = null)},
-                    label = { },
+                    icon = {   Icon(painterResource(R.drawable.rounded_globe_24), contentDescription = null)},
+                    label = { ""},
                     selected = currentRoute == BottomNavScreens.Games.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Games.route) {
@@ -271,7 +273,7 @@ fun BottomNav(viewModel: CardViewModel) {
                 // Notifications Tab
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Notifications, contentDescription = null) },
-                    label = { },
+                    label = {"" },
                     selected = currentRoute == BottomNavScreens.Notifications.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Notifications.route) {
@@ -287,7 +289,7 @@ fun BottomNav(viewModel: CardViewModel) {
                 // Settings Tab
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    label = {  },
+                    label = {""  },
                     selected = currentRoute == BottomNavScreens.Settings.route,
                     onClick = {
                         navController.navigate(BottomNavScreens.Settings.route) {
