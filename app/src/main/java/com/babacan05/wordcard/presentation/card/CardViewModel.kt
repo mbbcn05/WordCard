@@ -133,35 +133,11 @@ class CardViewModel :ViewModel() {
 
 
 
-        if(isInternetAvailable(context) &&viewingWorCard.value.addingMode!="offline"){
-
-
-            if (!creator) {
-                deleteWordCard(wordcard.documentId)
-                addWordCard(wordcard.copy(addingMode = "online"))
-
-            } else {
-                updateWordCard(wordcard.copy(addingMode = "online"))
-            }
-        }else if(!isInternetAvailable(context) &&viewingWorCard.value.addingMode=="online"){
-            if (!creator) {
-               // saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
-
-                Toast.makeText(context, "Bu işlemi yapmanız için online olunuz", Toast.LENGTH_SHORT).show()
-
-            } else {
-                updateWordCard(wordcard.copy(addingMode = "online"))
-            }
-           if(wordcard.imageUrl.startsWith("file")){ val appPreferences = MySharedPreferences(context)
-               appPreferences.saveOfflineImageState(true)
-
-
-           }
-        }else if(viewingWorCard.value.addingMode=="offline"){
+         if(viewingWorCard.value.addingMode=="offline"){
             updateofflineWordCard(wordcard.copy(addingMode = "offline"))
 
         }else{
-            print(viewingWorCard.value.toString()+"BURAYA İYİ BAK")
+
             saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
 
 
@@ -272,19 +248,7 @@ class CardViewModel :ViewModel() {
                 }
             }
 
-        if (returningWordCardId!="bulunmadı"&&returningWordCardId!="offline") {//
-            if (userId != null) {
-                print(returningWordCardId+"HEEEEEY")
 
-                viewModelScope.launch {
-                    addWordtoUser(
-                        userId,
-                        returningWordCardId!!
-                    )
-                }
-
-            }
-        }
         if(returningWordCardId=="bulunmadı"){
             if (userId != null) {
                 print(returningWordCardId+"HEEEEEY")
@@ -305,13 +269,7 @@ class CardViewModel :ViewModel() {
                                 }
                         }
 
-                        viewModelScope.launch {
-                            addWordtoUser(
-                                userId,
-                                wordId
-                            )
-                            updateCards()
-                        }//bu ıd zaten var mı kontrol et
+
                     }
                     .addOnFailureListener { e ->
 
