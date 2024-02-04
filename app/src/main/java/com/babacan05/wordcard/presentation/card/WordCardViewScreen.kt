@@ -2,6 +2,7 @@ package com.babacan05.wordcard.presentation.card
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ import coil.compose.ImagePainter
 import coil.request.ImageRequest
 import coil.transform.CircleCropTransformation
 import com.babacan05.wordcard.R
+import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -66,7 +68,7 @@ fun WordCardViewScreen(
 
 
 ) {
-val scope= rememberCoroutineScope()
+val context= LocalContext.current
     Card(
         modifier = modifier
             .fillMaxSize()
@@ -93,7 +95,7 @@ val scope= rememberCoroutineScope()
                     .padding(2.dp)
                     .weight(1f, true)
             ) {
-                var selectedImage by rememberSaveable { mutableStateOf<ByteArray?>(null) }
+
 
                 Column(
                     modifier = Modifier
@@ -110,7 +112,7 @@ val scope= rememberCoroutineScope()
                         placeholder = painterResource(R.drawable.rounded_globe_24),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.clip(CircleShape).size(100.dp)
+                        modifier = Modifier.clip(CircleShape).size(200.dp)
                     )
                     Text(
                         text = wordCard.word.uppercase(),
@@ -118,12 +120,13 @@ val scope= rememberCoroutineScope()
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
+                    Text(modifier = Modifier.background(Color.Green.copy(alpha = 0.1f)),
                         text = wordCard.translate,
                         fontSize = 18.sp,
                         color = Color.Gray,
@@ -176,10 +179,12 @@ val scope= rememberCoroutineScope()
 
                         Button(
                             onClick = {
-
+if (!isInternetAvailable(context =context )&&wordCard.addingMode=="online"&&wordCard.creatorId!=viewModel.wordCardUserId){
+    Toast.makeText(context, "Bu işleminiz online olduğunuzda gerçekleşecektir.", Toast.LENGTH_SHORT).show()
+}
                                 deleteClick()
-                                onFinish()
-                            },
+                                onFinish()}
+                            ,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp)

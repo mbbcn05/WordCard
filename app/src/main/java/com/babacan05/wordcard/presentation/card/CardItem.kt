@@ -79,7 +79,7 @@ fun WordCardItem(wordCard: WordCard, modifier: Modifier = Modifier, onClick: () 
                     fontSize = 20.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0f)) // Metnin arkasındaki siyah arka planı kaplayacak şekilde ayarlayın
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.1f)) // Metnin arkasındaki siyah arka planı kaplayacak şekilde ayarlayın
                 )
             }
         }

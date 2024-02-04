@@ -2,22 +2,23 @@ package com.babacan05.wordcard.presentation.card
 
 
 
-import com.google.firebase.ktx.Firebase
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.babacan05.wordcard.common.FileUtil
 import com.babacan05.wordcard.common.MySharedPreferences
 import com.babacan05.wordcard.common.isInternetAvailable
+import com.babacan05.wordcard.common.readByteArrayFromFileUri
 import com.babacan05.wordcard.model.WordCard
-import com.google.firebase.FirebaseError
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
-import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -27,9 +28,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+
 
 class CardViewModel :ViewModel() {
     private val _wordcardstateFlow = MutableStateFlow<List<WordCard>>(value = emptyList())
@@ -46,10 +49,10 @@ class CardViewModel :ViewModel() {
 
 
     private val db = FirebaseFirestore.getInstance()
-//val storage=Firebase.storage
     val storage = FirebaseStorage.getInstance()
 
     init {
+
         viewModelScope.launch {
             checkUserwordList()
             listenOfflineWordCards()
@@ -95,27 +98,32 @@ class CardViewModel :ViewModel() {
     }
 
     suspend fun deleteWordCard(wordcardId: String) {
-      try {
+        try {
 
 
-          db.collection("users").document(wordCardUserId!!).collection("offlinewordcards")
-              .document(viewingWorCard.value.documentId).delete().await()
-
-          wordCardUserId.let {
-              val userRef = db.collection("users").document(it)
-              userRef.update("wordIdList", FieldValue.arrayRemove(wordcardId))
-                  .addOnSuccessListener {
-                      println("Veri başarıyla eklendi.")
-                  }
-                  .addOnFailureListener { e ->
-                      println("Veri eklenirken bir hata oluştu: $e")
-                  }
-          }
+            db.collection("users").document(wordCardUserId!!).collection("offlinewordcards")
+                .document(viewingWorCard.value.documentId).delete().await()
 
 
-      }catch (e:Exception){
-          print(e.toString())
-      }
+                wordCardUserId.let {
+                    val userRef = db.collection("users").document(it)
+                    userRef.update("wordIdList", FieldValue.arrayRemove(wordcardId))
+                        .addOnSuccessListener {
+                            println("Veri başarıyla eklendi.")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Veri eklenirken bir hata oluştu: $e")
+                        }
+                }
+                delay(1000)
+
+               // Toast.makeText(context, "Bu işleminiz online olduğunuzda otomatik gerçekleşecektir", Toast.LENGTH_SHORT).show()
+
+            } catch (e:Exception){
+                print(e.toString())
+            }
+
+
     }
 
 
@@ -150,15 +158,35 @@ class CardViewModel :ViewModel() {
 
 
             if (!creator) {
+                deleteWordCard(wordcard.documentId)
                 addWordCard(wordcard.copy(addingMode = "online"))
 
             } else {
                 updateWordCard(wordcard.copy(addingMode = "online"))
             }
-        }else if(viewingWorCard.value.addingMode==""){
-            saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
+        }else if(!isInternetAvailable(context) &&viewingWorCard.value.addingMode=="online"){
+            if (!creator) {
+               // saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
+
+                Toast.makeText(context, "Bu işlemi yapmanız için online olunuz", Toast.LENGTH_SHORT).show()
+
+            } else {
+                updateWordCard(wordcard.copy(addingMode = "online"))
+            }
+           if(wordcard.imageUrl.startsWith("file")){ val appPreferences = MySharedPreferences(context)
+               appPreferences.saveOfflineImageState(true)
+
+
+           }
         }else if(viewingWorCard.value.addingMode=="offline"){
             updateofflineWordCard(wordcard.copy(addingMode = "offline"))
+
+        }else{
+            print(viewingWorCard.value.toString()+"BURAYA İYİ BAK")
+            saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
+
+
+
         }
 
     }
@@ -175,8 +203,8 @@ class CardViewModel :ViewModel() {
 
 
         try {
-            val userId = getUserId()
-            userId?.let {
+
+            wordCardUserId?.let {
                 if (wordCard.documentId.isNotBlank()) {
                     // Firestore update operation
                     db.collection("wordcards")
@@ -193,7 +221,7 @@ class CardViewModel :ViewModel() {
                 }
             }
         } catch (e: Exception) {
-            println("Bir hata oluştu: $e")
+            println("çözmen gereken Bir hata oluştu: $e")
             // Handle the exception as needed
         }
 
@@ -299,6 +327,7 @@ class CardViewModel :ViewModel() {
             .whereEqualTo("translate", wordCard.translate)
             .whereEqualTo("synonyms", wordCard.synonyms)
             .whereEqualTo("sentence", wordCard.sentence)
+            .whereEqualTo("imageUrl", wordCard.imageUrl)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 var returningWordCardId: String? = "bulunmadı"
@@ -468,10 +497,7 @@ class CardViewModel :ViewModel() {
         }
     }
 
-    fun updateShredPrefWordCards(context: Context) {
-        val sharedPreferencesHelper = MySharedPreferences(context)
-        // _sharedPrefWordCards.value=sharedPreferencesHelper.getWordCardList()
-    }
+
 
 
     fun saveOfflineWordCard(wordCard: WordCard) {
@@ -542,11 +568,19 @@ class CardViewModel :ViewModel() {
      suspend fun migrateCardsIntoOnline(context: Context,wordList:List<WordCard>){
 
         if(isInternetAvailable(context = context)&& wordList.isNotEmpty()) {
+
         val deletingwordList=wordList.map { it }.toList()
         for (wordcard in deletingwordList){
+            var imageUrl= ""
+
+            if(wordcard.imageUrl.isNotEmpty()){
+                imageUrl= readByteArrayFromFileUri(wordcard.imageUrl)?.let { uploadImageToCloud(it) }?:wordcard.imageUrl
+                delay(2000)
+            }
+
             print("işlem"+wordcard.documentId)
             _viewingWorCard.value= WordCard()
-            saveWordCard(wordcard.copy(addingMode = "online"),false, context = context)
+            saveWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl),false, context = context)
             db.collection("users").document(wordCardUserId!!).collection("offlinewordcards")
                 .document(wordcard.documentId).delete().await()
             delay(1000)
@@ -557,5 +591,4 @@ class CardViewModel :ViewModel() {
         }
 
     }
-
 }

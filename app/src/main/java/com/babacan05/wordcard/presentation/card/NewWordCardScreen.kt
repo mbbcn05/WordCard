@@ -11,15 +11,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,12 +31,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.babacan05.wordcard.R
+import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -46,6 +58,12 @@ fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: Wo
         mutableStateOf(wordCard.imageUrl)
     }
 var context: Context =LocalContext.current
+    var selectedByteArray: ByteArray? by rememberSaveable {
+        mutableStateOf(null)
+    }
+    var showingbyteArray by rememberSaveable {
+        mutableStateOf(false)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -67,11 +85,30 @@ var context: Context =LocalContext.current
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+             Row(){   AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(if(showingbyteArray){selectedByteArray}else{imageUrl})
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.rounded_globe_24),
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
+                 if(showingbyteArray||imageUrl.isNotEmpty()){IconButton(onClick ={showingbyteArray=false
+                     selectedByteArray=null
+                     imageUrl=""}){
+                     Icon(imageVector = Icons.Default.Delete, contentDescription = "",tint = LocalContentColor.current)}
+                 }
+             }
                 OutlinedTextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
                     keyboardType=KeyboardType.Text),
                     keyboardActions = KeyboardActions(onNext = null),
@@ -125,38 +162,47 @@ var context: Context =LocalContext.current
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                ImagePicker (LocalContext.current){ uri ->
+                ImagePicker (LocalContext.current, onImageSelected = {byteArray ->
                     viewModel.viewModelScope.launch {
-                         imageUrl=viewModel.uploadImageToCloud(uri)
 
-                    }
+                        selectedByteArray=byteArray
+                        showingbyteArray=true
+                        //  imageUrl=viewModel.uploadImageToCloud(byteArray )
+
+                    }}){
+
+                    imageUrl=it.toString()
+                    print("Hedef kısım çalıştı")
+
                 }
                 Button(enabled = !word.isEmpty()&&!translate.isEmpty(), modifier=Modifier.fillMaxWidth(),
                     onClick = {
+
+
+
                         viewModel.viewModelScope.launch {
+                            if (isInternetAvailable(context = context)) {
+                                selectedByteArray?.let {
+                                    imageUrl = viewModel.uploadImageToCloud(it)
+                                }
+                            }
+
+                                viewModel.saveWordCard(
+                                    WordCard(
+                                        word = word.trim(),
+                                        translate = translate.trim(),
+                                        sentence = sampleSentence.trim(),
+                                        synonyms = synonyms.trim(),
+                                        documentId = wordCard.documentId,
+                                        creatorId = wordCard.creatorId,
+                                        imageUrl = imageUrl
+                                    ),
+                                    viewModel.wordCardUserId == wordCard.creatorId, context
+                                )
 
 
-
-                            viewModel.saveWordCard(
-                                WordCard(
-                                    word = word.trim(),
-                                    translate = translate.trim(),
-                                    sentence = sampleSentence.trim(),
-                                    synonyms = synonyms.trim(),
-                            documentId = wordCard.documentId,
-                                    creatorId = wordCard.creatorId,
-                                    imageUrl = imageUrl
-                                ),
-                                viewModel.wordCardUserId==wordCard.creatorId, context
-                            )
-
-
-                        }
-                    onFinish()
-
-
-
-
+                            }
+                            onFinish()
 
 
 
@@ -170,3 +216,7 @@ var context: Context =LocalContext.current
         }
     }
 }
+
+
+
+

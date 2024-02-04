@@ -178,7 +178,7 @@ fun GameScreen(viewModel: CardViewModel, navController: NavHostController,state:
                 keyboardActions = KeyboardActions(onNext = null),
                 value = searchQuery,
                 onValueChange = {
-                    searchQuery = it
+                    searchQuery = it.lowercase()
                     //viewModel.searchWordCardOnline(it)
 
                 },
@@ -342,12 +342,13 @@ fun BottomNav(viewModel: CardViewModel) {
                 } }
             }
             composable("WordCardSearchViewScreen"){
-               WordCardSearchViewScreen(
-                   wordCard = viewModel.viewingWorCard.value,
-                   onFinish = { navController.navigate(BottomNavScreens.Home.route)},
-                   saveClick = {  viewModel.wordCardUserId?.let {word->viewModel.viewModelScope.launch { viewModel.addWordtoUser(word,viewModel.viewingWorCard.value.documentId) }}})
+                WordCardSearchViewScreen(
+                    wordCard = viewModel.viewingWorCard.value,
+                    onFinish = { navController.navigate(BottomNavScreens.Home.route)},
+                    saveClick = {  viewModel.wordCardUserId?.let {word->viewModel.viewModelScope.launch { viewModel.addWordtoUser(word,viewModel.viewingWorCard.value.documentId) }}})
 
             }
+
         }
     }
 }

@@ -8,8 +8,7 @@ import com.google.gson.Gson
 
 
 
-
-
+class ImageData(val byteArray: ByteArray)
 class MySharedPreferences(context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
@@ -75,5 +74,24 @@ class MySharedPreferences(context: Context) {
     fun resetSharedPrefWordCards() {
         sharedPreferences.edit().remove("WORDCARD").apply()
         sharedPreferences.edit().remove("CARDID").apply()
+    }
+
+
+    fun saveImage(byteArray: ByteArray, belgeId: String) {
+        val json = gson.toJson(ImageData(byteArray))
+        sharedPreferences.edit().putString(belgeId, json).apply()
+    }
+    fun saveOfflineImageState(imagestate:Boolean){
+        val json = gson.toJson(imagestate)
+        sharedPreferences.edit().putBoolean("imagestate",imagestate).apply()
+    }
+    fun geOfflineImageState():Boolean{
+        val json = sharedPreferences.getString("imagestate",null)
+        return if (json != null) {
+            val type = object : TypeToken<Boolean>() {}.type
+            gson.fromJson(json, type)
+        } else {
+           false
+        }
     }
 }
