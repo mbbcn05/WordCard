@@ -68,31 +68,19 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector, val labe
 @Composable
 fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
     val context: Context = LocalContext.current
-    val wordList = viewModel.wordcardstateFlow.collectAsStateWithLifecycle().value
-    var checkingmigratewords by remember { mutableIntStateOf(0 ) }
+
+    //var checkingmigratewords by remember { mutableIntStateOf(0 ) }
     var searchQuery by remember { mutableStateOf("") }
     val offlinelist=viewModel.offlineWordCards.collectAsStateWithLifecycle().value
-    val collectedList by remember(wordList,offlinelist) {
-        derivedStateOf {
-           wordList+offlinelist
-        }
-    }
 
-    val filteredWordList by remember(collectedList, searchQuery) {
+
+    val filteredWordList by remember(offlinelist, searchQuery) {
         derivedStateOf {
-           viewModel.filterWordList(collectedList, searchQuery)
+           viewModel.filterWordList(offlinelist, searchQuery)
        }
     }
-    LaunchedEffect(true) {
-
-        viewModel.updateCards()
 
 
-
-    }
-    LaunchedEffect(key1 =checkingmigratewords){
-       viewModel.migrateCardsIntoOnline(context,offlinelist)
-    }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -125,7 +113,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
 
 
                     WordCardItem(wordCard = it) {
-            checkingmigratewords++
+           // checkingmigratewords++
                         viewModel.updateViewingWordCard(it)
                         navController.navigate("WordCardViewScreen")
                     }
@@ -140,7 +128,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
         }
         FloatingActionButton(
             onClick = {
-                checkingmigratewords++
+               // checkingmigratewords++
                 viewModel.updateViewingWordCard(WordCard())
                 navController.navigate("NewCardScreen")
 
