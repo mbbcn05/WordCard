@@ -35,10 +35,8 @@ import kotlin.coroutines.suspendCoroutine
 
 
 class CardViewModel :ViewModel() {
-    private val _wordcardstateFlow = MutableStateFlow<List<WordCard>>(value = emptyList())
     private val _wordIdStateFlow = MutableStateFlow<List<String>>(value = emptyList())
     val wordIdStateFlow: StateFlow<List<String>> get() = _wordIdStateFlow.asStateFlow()
-    val wordcardstateFlow: StateFlow<List<WordCard>> get() = _wordcardstateFlow.asStateFlow()
     private val _viewingWorCard = MutableStateFlow(value = WordCard())
     val viewingWorCard: StateFlow<WordCard> get() = _viewingWorCard.asStateFlow()
     private val _wordcardSearchStateFlow = MutableStateFlow<List<WordCard>>(value = emptyList())
@@ -54,8 +52,7 @@ class CardViewModel :ViewModel() {
     init {
 
         viewModelScope.launch {
-            checkUserwordList()
-            //listenOfflineWordCards()
+            listenOfflineWordCards()
         }
 
 
@@ -128,27 +125,9 @@ class CardViewModel :ViewModel() {
 
 
 
-    suspend fun updateCards() {
-
-        listenToWordCardsByIds().collect { data ->
-            // StateFlow içindeki veriyi güncelleyerek UI'a otomatik olarak yansıtın
-            _wordcardstateFlow.value = data
 
 
-        }
-    }
 
-    fun getWordCardIds() {
-
-        viewModelScope.launch {
-            getWordIdList().collect { data ->
-                // StateFlow içindeki veriyi güncelleyerek UI'a otomatik olarak yansıtın
-                _wordIdStateFlow.value = data
-
-            }
-
-        }
-    }
 
     suspend fun saveWordCard(wordcard: WordCard, creator: Boolean, context: Context) {
 
@@ -229,76 +208,9 @@ class CardViewModel :ViewModel() {
     }
 
 
-    private fun getWordIdList(): Flow<List<String>> = callbackFlow {
-        val userId = getUserId()
-        if (userId != null) {
-            val listener = db
-                .collection("users")
-                .document(userId)
-                .addSnapshotListener { documentSnapshot, error ->
-                    if (error == null && documentSnapshot != null) {
-                        val wordIdList: List<String>? =
-                            documentSnapshot.get("wordIdList") as List<String>
-                        if (wordIdList != null) {
-                            trySend(wordIdList)
-                            viewModelScope.launch { updateCards() }
-                            // VERİ İD EKLENDİKÇE WORDCARDLARI TEKRAR SRGULAYACAK
-                        }
-                    } else {
-                        // Hata durumunda bir şeyler yapabilirsiniz
-                        trySend(emptyList())
-                    }
-                }
 
-            // Flow sona erdiğinde dinleyiciyi kapat
-            awaitClose {
-                listener.remove()
-            }
-        }
-    }
 
-    fun listenToWordCardsByIds(): Flow<List<WordCard>> = callbackFlow {
-        val collectionReference = db.collection("wordcards")
 
-        // Belirli ID'leri içeren bir liste oluşturun
-        val wordIds = wordIdStateFlow.value
-
-        if (wordIds.isNotEmpty()) {
-            // Firestore'dan belirli ID'lerle eşleşen WordCard'ları getirin
-            val query = collectionReference.whereIn(FieldPath.documentId(), wordIds)
-
-            // Firestore sorgusunu gerçekleştirin
-            val listenerRegistration = query.addSnapshotListener { querySnapshot, error ->
-                if (error != null) {
-                    trySend(emptyList())
-                    return@addSnapshotListener
-                }
-
-                val wordCardList = mutableListOf<WordCard>()
-
-                querySnapshot?.documents?.forEach { documentSnapshot ->
-                    val wordCard = documentSnapshot.toObject(WordCard::class.java)
-                    if (wordCard != null) {
-                        wordCardList.add(wordCard)
-                    }
-                }
-
-                trySend(wordCardList)
-            }
-
-            // Flow sona erdiğinde dinleyiciyi kapat
-            awaitClose {
-                // Dinleyiciyi kapat
-                listenerRegistration.remove()
-            }
-        } else {
-            // wordIds listesi boşsa, boş bir liste gönder
-            trySend(emptyList())
-
-            // Flow sona erdiğinde başka bir kaynak kapatılması gerekmiyorsa awaitClose bloğu içinde bir şey yapmaya gerek yok.
-            awaitClose { }
-        }
-    }
 
     fun getUserId(): String? {
 
@@ -448,7 +360,7 @@ class CardViewModel :ViewModel() {
                             println("Belge oluşturulurken bir hata oluştu: $e")
                         }
                 }
-                getWordCardIds()
+
             }
             ?.addOnFailureListener { e ->
                 println("Belge okunurken bir hata oluştu: $e")
@@ -457,21 +369,6 @@ class CardViewModel :ViewModel() {
 
     }
 
-    suspend fun addWordtoUser(userId: String, wordId: String) {
-        val userRef = db.collection("users").document(userId)
-
-
-        viewModelScope.launch {
-
-            userRef.update("wordIdList", FieldValue.arrayUnion(wordId))
-                .addOnSuccessListener {
-                    println("Veri başarıyla eklendi.")
-                }
-                .addOnFailureListener { e ->
-                    println("Veri eklenirken bir hata oluştu: $e")
-                }
-        }
-    }
 
     fun searchWordCardOnline(s: String) {
         // val wordListFlow = MutableStateFlow(listOf<WordCard>())
