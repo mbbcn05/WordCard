@@ -333,7 +333,7 @@ fun BottomNav(viewModel: CardViewModel) {
                 WordCardSearchViewScreen(
                     wordCard = viewModel.viewingWorCard.value,
                     onFinish = { navController.navigate(BottomNavScreens.Home.route)},
-                    saveClick = {  viewModel.wordCardUserId?.let {word->viewModel.viewModelScope.launch { viewModel.addWordtoUser(word,viewModel.viewingWorCard.value.documentId) }}})
+                    saveClick = {  viewModel.viewingWorCard.value?.let {word->viewModel.viewModelScope.launch { viewModel.saveWordCard(word) }}})
 
             }
 

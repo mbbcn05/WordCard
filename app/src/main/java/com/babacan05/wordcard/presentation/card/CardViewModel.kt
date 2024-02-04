@@ -129,7 +129,7 @@ class CardViewModel :ViewModel() {
 
 
 
-    suspend fun saveWordCard(wordcard: WordCard, creator: Boolean, context: Context) {
+    suspend fun saveWordCard(wordcard: WordCard) {
 
 
 
@@ -435,7 +435,7 @@ class CardViewModel :ViewModel() {
 
             print("işlem"+wordcard.documentId)
             _viewingWorCard.value= WordCard()
-            saveWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl),false, context = context)
+            saveWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl))
             db.collection("users").document(wordCardUserId!!).collection("offlinewordcards")
                 .document(wordcard.documentId).delete().await()
             delay(1000)
