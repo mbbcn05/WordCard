@@ -55,7 +55,7 @@ class CardViewModel :ViewModel() {
 
         viewModelScope.launch {
             checkUserwordList()
-            listenOfflineWordCards()
+            //listenOfflineWordCards()
         }
 
 
