@@ -129,20 +129,30 @@ class CardViewModel :ViewModel() {
 
 
 
-    suspend fun saveWordCard(wordcard: WordCard) {
+    suspend fun saveWordCard(wordcard: WordCard,creator:Boolean) {
 
 
 
          if(viewingWorCard.value.addingMode=="offline"){
             updateofflineWordCard(wordcard.copy(addingMode = "offline"))
 
-        }else{
+        }else if(viewingWorCard.value.addingMode==""){
 
             saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
 
 
 
-        }
+        }else if(viewingWorCard.value.addingMode=="online"){
+if (creator) {
+    updateofflineWordCard(wordcard.copy(addingMode = "offline"))
+            }else{
+                deleteWordCard(wordcard.documentId)
+    saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
+
+            }
+
+
+         }
 
     }
 
@@ -362,7 +372,7 @@ class CardViewModel :ViewModel() {
                 .collection("offlinewordcards").document().id
 
             // Belge kimliğini içeren WordCard nesnesini güncelle
-            val belgeIdliWordCard = wordCard.copy(documentId = belgeId)
+            val belgeIdliWordCard = wordCard.copy(documentId = belgeId, creatorId = wordCardUserId)
 
             // WordCard'ı Firestore'a ekle
             db.collection("users").document(kullaniciId)
