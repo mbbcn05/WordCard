@@ -196,7 +196,7 @@ var context: Context =LocalContext.current
                                         documentId = wordCard.documentId,
                                         creatorId = wordCard.creatorId,
                                         imageUrl = imageUrl
-                                    )
+                                    ),wordCard.creatorId==viewModel.wordCardUserId
                                 )
 
 

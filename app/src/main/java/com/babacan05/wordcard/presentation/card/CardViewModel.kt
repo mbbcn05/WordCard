@@ -146,6 +146,10 @@ class CardViewModel :ViewModel() {
 if (creator) {
     updateofflineWordCard(wordcard.copy(addingMode = "offline"))
             }else{
+
+
+
+
                 deleteWordCard(wordcard.documentId)
     saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
 

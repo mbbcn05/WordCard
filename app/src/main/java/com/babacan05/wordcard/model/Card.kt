@@ -12,4 +12,5 @@ data class WordCard(
                      val sentence:String="",
                     val imageUrl:String="",
                      val addingMode:String="",
+                     val updateMode:Boolean=true
     )

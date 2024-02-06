@@ -113,7 +113,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
 
 
                     WordCardItem(wordCard = it) {
-           // checkingmigratewords++
+           //checkingmigratewords++
                         viewModel.updateViewingWordCard(it)
                         navController.navigate("WordCardViewScreen")
                     }
