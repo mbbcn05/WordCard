@@ -449,15 +449,19 @@ if (creator) {
 
             print("işlem"+wordcard.documentId)
             _viewingWorCard.value= WordCard()
-            saveWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl))
-            db.collection("users").document(wordCardUserId!!).collection("offlinewordcards")
-                .document(wordcard.documentId).delete().await()
+            //saveWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl))
+            updateofflineWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl))
+            saveOnlineWordCard(wordcard)
             delay(1000)
 
 
         }
 
         }
+
+    }
+
+    private fun saveOnlineWordCard(wordcard: WordCard) {
 
     }
 }

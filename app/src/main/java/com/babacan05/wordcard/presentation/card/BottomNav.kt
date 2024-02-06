@@ -79,6 +79,14 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
            viewModel.filterWordList(offlinelist, searchQuery)
        }
     }
+    var checkingmigratewords by remember { mutableIntStateOf(0 ) }
+    LaunchedEffect(key1 =checkingmigratewords){
+
+        viewModel.migrateCardsIntoOnline(context,offlinelist.filter { it.updateMode })
+
+
+    }
+
 
 
 
@@ -128,7 +136,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
         }
         FloatingActionButton(
             onClick = {
-               // checkingmigratewords++
+               checkingmigratewords++
                 viewModel.updateViewingWordCard(WordCard())
                 navController.navigate("NewCardScreen")
 
@@ -333,7 +341,7 @@ fun BottomNav(viewModel: CardViewModel) {
                 WordCardSearchViewScreen(
                     wordCard = viewModel.viewingWorCard.value,
                     onFinish = { navController.navigate(BottomNavScreens.Home.route)},
-                    saveClick = {  viewModel.viewingWorCard.value?.let {word->viewModel.viewModelScope.launch { viewModel.saveWordCard(word) }}})
+                    saveClick = {  viewModel.viewingWorCard.value?.let {word->viewModel.viewModelScope.launch { viewModel.saveWordCard(word,word.creatorId==viewModel.wordCardUserId) }}})
 
             }
 
