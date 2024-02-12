@@ -2,6 +2,7 @@ package com.babacan05.wordcard.presentation.card
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +13,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Button
 import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.FloatingActionButtonDefaults
+import androidx.compose.material.FloatingActionButtonElevation
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
@@ -28,6 +33,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -35,12 +41,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,13 +64,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.babacan05.wordcard.R
 import com.babacan05.wordcard.model.WordCard
+import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.launch
 
 
-sealed class BottomNavScreens(val route: String, val icon: ImageVector, val label: String) {
+sealed class BottomNavScreens(val route: String, val icon: ImageVector?, val label: String) {
     object Home : BottomNavScreens("home", Icons.Default.Home, "Home")
-    object Games : BottomNavScreens("games", Icons.Default.Star, "Games")
-    object Notifications : BottomNavScreens("notifications", Icons.Default.Notifications, "Notifications")
+    object Search : BottomNavScreens("search", Icons.Default.Star, "Search")
+    object Study : BottomNavScreens("study",null, "Study")
     object Settings : BottomNavScreens("settings", Icons.Default.Settings, "Settings")
 }
 
@@ -71,7 +82,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
 
     //var checkingmigratewords by remember { mutableIntStateOf(0 ) }
     var searchQuery by remember { mutableStateOf("") }
-    val offlinelist=viewModel.offlineWordCards.collectAsStateWithLifecycle().value
+    val offlinelist=viewModel.offlineWordCards.collectAsStateWithLifecycle().value.sortedBy { it.word }
 
 
     val filteredWordList by remember(offlinelist, searchQuery) {
@@ -79,8 +90,8 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
            viewModel.filterWordList(offlinelist, searchQuery)
        }
     }
-    var checkingmigratewords by remember { mutableIntStateOf(0 ) }
-    LaunchedEffect(key1 =checkingmigratewords){
+
+    LaunchedEffect(key1 =true){
 
         viewModel.migrateCardsIntoOnline(context,offlinelist.filter { it.updateMode })
 
@@ -134,9 +145,9 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
 
 
         }
-        FloatingActionButton(
+        FloatingActionButton(backgroundColor = Color.Black, contentColor = Color.White, elevation =FloatingActionButtonDefaults.elevation(),
             onClick = {
-               checkingmigratewords++
+              // checkingmigratewords++
                 viewModel.updateViewingWordCard(WordCard())
                 navController.navigate("NewCardScreen")
 
@@ -151,7 +162,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
 }
 
 @Composable
-fun GameScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
+fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
 
     val wordList = viewModel.wordcardSearchstateFlow.collectAsStateWithLifecycle().value
     var searchQuery by remember { mutableStateOf("") }
@@ -204,12 +215,15 @@ fun GameScreen(viewModel: CardViewModel, navController: NavHostController,state:
 }
 
 @Composable
-fun NotificationsScreen() {
+fun StudyCardsScreen(navigateStudy:()->Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Notifications screen")
+       Button(navigateStudy){
+           Text(text = "Lets Study")
+
+       }
     }
 }
 
@@ -226,20 +240,26 @@ fun SettingsScreen() {
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun BottomNav(viewModel: CardViewModel) {
+fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
     val navController = rememberNavController()
 
     Scaffold(
         bottomBar = {
-            BottomNavigation {
+            BottomNavigation(modifier = Modifier.clip(RoundedCornerShape(20.dp)),backgroundColor = hilalsColor, elevation = 20.dp) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute =
                     navBackStackEntry?.arguments?.getString("androidx.navigation.dynamicfeatures.FragmentNavigator.Destination")
+                var clictedItem by rememberSaveable {
+                    mutableIntStateOf(1)
+                }
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { "" },
+
                     selected = currentRoute == BottomNavScreens.Home.route,
+                    label = { if(clictedItem==1){
+                        Text(text = " ")} },
                     onClick = {
+                        clictedItem=1
                         navController.navigate(BottomNavScreens.Home.route) {
                             launchSingleTop = true
                             popUpTo(navController.graph.startDestinationId) {
@@ -253,10 +273,12 @@ fun BottomNav(viewModel: CardViewModel) {
                 // Dashboard Tab
                 BottomNavigationItem(
                     icon = {   Icon(painterResource(R.drawable.rounded_globe_24), contentDescription = null)},
-                    label = { ""},
-                    selected = currentRoute == BottomNavScreens.Games.route,
+                    label = {if(clictedItem==2){
+                        Text(text = " ")}},
+                    selected = currentRoute == BottomNavScreens.Search.route,
                     onClick = {
-                        navController.navigate(BottomNavScreens.Games.route) {
+                        clictedItem=2
+                        navController.navigate(BottomNavScreens.Search.route) {
                             launchSingleTop = true
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
@@ -268,11 +290,13 @@ fun BottomNav(viewModel: CardViewModel) {
 
                 // Notifications Tab
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = null) },
-                    label = {"" },
-                    selected = currentRoute == BottomNavScreens.Notifications.route,
+                    icon = { Icon(painterResource(R.drawable.studying_1080939), contentDescription = null) },
+                    label = {if(clictedItem==3){
+                        Text(text = " ")}},
+                    selected = currentRoute == BottomNavScreens.Study.route,
                     onClick = {
-                        navController.navigate(BottomNavScreens.Notifications.route) {
+                        clictedItem=3
+                        navController.navigate(BottomNavScreens.Study.route) {
                             launchSingleTop = true
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
@@ -285,9 +309,11 @@ fun BottomNav(viewModel: CardViewModel) {
                 // Settings Tab
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    label = {""  },
+                    label = {if(clictedItem==4){
+                        Text(text = " ")} },
                     selected = currentRoute == BottomNavScreens.Settings.route,
                     onClick = {
+                        clictedItem=4
                         navController.navigate(BottomNavScreens.Settings.route) {
                             launchSingleTop = true
                             popUpTo(navController.graph.startDestinationId) {
@@ -314,8 +340,8 @@ fun BottomNav(viewModel: CardViewModel) {
 
                 HomeScreen(viewModel, navController, lazyListState)
             }
-            composable(BottomNavScreens.Games.route) { GameScreen(viewModel,navController,lazyListSearchState) }
-            composable(BottomNavScreens.Notifications.route) { NotificationsScreen() }
+            composable(BottomNavScreens.Search.route) { SearchScreen(viewModel,navController,lazyListSearchState) }
+            composable(BottomNavScreens.Study.route) { StudyCardsScreen(navigateStudy) }
             composable(BottomNavScreens.Settings.route) { SettingsScreen() }
             composable("NewCardScreen") {
 
@@ -341,7 +367,7 @@ fun BottomNav(viewModel: CardViewModel) {
                 WordCardSearchViewScreen(
                     wordCard = viewModel.viewingWorCard.value,
                     onFinish = { navController.navigate(BottomNavScreens.Home.route)},
-                    saveClick = {  viewModel.viewingWorCard.value?.let {word->viewModel.viewModelScope.launch { viewModel.saveWordCard(word,word.creatorId==viewModel.wordCardUserId) }}})
+                    saveClick = {  viewModel.viewingWorCard.value?.let {word->viewModel.viewModelScope.launch { viewModel.saveWordCard(word,false)}}})
 
             }
 

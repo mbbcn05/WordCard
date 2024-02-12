@@ -29,6 +29,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.babacan05.wordcard.R
 import com.babacan05.wordcard.model.WordCard
+import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 
 @Composable
 fun WordCardItem(wordCard: WordCard, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -42,14 +43,7 @@ fun WordCardItem(wordCard: WordCard, modifier: Modifier = Modifier, onClick: () 
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = modifier.background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        Color.Cyan, Color.Transparent,
-                    )
-                )
-            )
+            modifier = modifier.background(hilalsColor)
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -66,20 +60,22 @@ fun WordCardItem(wordCard: WordCard, modifier: Modifier = Modifier, onClick: () 
             Column(
                 modifier = modifier
 
-                    .padding(16.dp)
-                    .background(Color.Black.copy(alpha = 0.6f))
-                    .clip(RoundedCornerShape(16.dp)),
+
+                    .background(Color.Black.copy(alpha = 0.2f))
+                    .clip(RoundedCornerShape(20.dp)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = wordCard.word.uppercase(),
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     fontSize = 20.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0.1f)) // Metnin arkasındaki siyah arka planı kaplayacak şekilde ayarlayın
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.2f)).clip(
+                        RoundedCornerShape(15.dp)
+                    )//Metnin arkasındaki siyah arka planı kaplayacak şekilde ayarlayın
                 )
             }
         }

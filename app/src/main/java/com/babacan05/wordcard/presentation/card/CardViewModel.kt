@@ -24,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -35,15 +36,13 @@ import kotlin.coroutines.suspendCoroutine
 
 
 class CardViewModel :ViewModel() {
-    private val _wordIdStateFlow = MutableStateFlow<List<String>>(value = emptyList())
-    val wordIdStateFlow: StateFlow<List<String>> get() = _wordIdStateFlow.asStateFlow()
     private val _viewingWorCard = MutableStateFlow(value = WordCard())
     val viewingWorCard: StateFlow<WordCard> get() = _viewingWorCard.asStateFlow()
     private val _wordcardSearchStateFlow = MutableStateFlow<List<WordCard>>(value = emptyList())
     val wordcardSearchstateFlow: StateFlow<List<WordCard>> get() = _wordcardSearchStateFlow.asStateFlow()
     private val _offlineWordCards = MutableStateFlow<List<WordCard>>(value = emptyList())
     val offlineWordCards: StateFlow<List<WordCard>> get() = _offlineWordCards.asStateFlow()
-    val wordCardUserId: String? = getUserId()
+    val wordCardUserId: String = getUserId() ?: "26152122810forgoogle"
 
 
     private val db = FirebaseFirestore.getInstance()
@@ -133,34 +132,27 @@ class CardViewModel :ViewModel() {
 
 
 
-         if(viewingWorCard.value.addingMode=="offline"){
-            updateofflineWordCard(wordcard.copy(addingMode = "offline"))
-
-        }else if(viewingWorCard.value.addingMode==""){
+         if(viewingWorCard.value.addingMode==""){
 
             saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
 
+         }else  if(viewingWorCard.value.addingMode=="offline") {
+            if (creator){
+             updateofflineWordCard(wordcard.copy(addingMode = "offline"))
+            } else{
+                 deleteWordCard(wordcard.documentId)
+                saveOfflineWordCard(wordcard.copy(addingMode = "offline"))
+
+             }
+         }else
+             updateofflineWordCard(wordcard.copy(addingMode = "offline"))
 
 
-        }else if(viewingWorCard.value.addingMode=="online"){
-if (creator) {
-    updateofflineWordCard(wordcard.copy(addingMode = "offline"))
-            }else{
 
-
-
-
-                deleteWordCard(wordcard.documentId)
-    saveOfflineWordCard(wordCard = wordcard.copy(addingMode = "offline"))
-
-            }
-
-
-         }
 
     }
 
-    private fun updateofflineWordCard(wordcard: WordCard) {
+     fun updateofflineWordCard(wordcard: WordCard) {
         if (wordCardUserId != null) {
             db.collection("users").document(wordCardUserId)
                 .collection("offlinewordcards").document(wordcard.documentId)
@@ -340,7 +332,65 @@ if (creator) {
 
 
     }
+fun getİsLearned(wordcardId: String,callBack:(Boolean)->Unit){
 
+    if (wordCardUserId != null) {
+        db.collection("users")
+            .document(wordCardUserId)
+            .collection("offlinewordcards")
+            .document(wordcardId)
+            .get()
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val fieldValue = documentSnapshot.getBoolean("isLearned")
+                    if (fieldValue != null) {
+                       callBack(fieldValue)
+print("CALLBACK BAŞARILI$fieldValue")
+
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+
+            }
+    }
+
+}
+fun updateIsLearned(wordCard:WordCard,isLearned:String,context: Context) {
+
+    val updateData = hashMapOf(
+        "isLearned" to isLearned
+    )
+
+    if (wordCardUserId != null) {
+        db.collection("users")
+            .document(wordCardUserId)
+            .collection("offlinewordcards")
+            .document(wordCard.documentId)
+            .update(updateData as Map<String, Any>)
+            .addOnSuccessListener {
+               // _viewingWorCard.value=_viewingWorCard.value.copy(isLearned=isLearned)
+                if(isLearned=="true") {
+
+                    Toast.makeText(
+                        context,
+                        "The WordCard is marked as learned",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }else{
+                    Toast.makeText(
+                        context,
+                        "The WordCard is marked as being studied",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            .addOnFailureListener { e ->
+
+            }
+    }
+
+}
 
     fun searchWordCardOnline(s: String) {
         // val wordListFlow = MutableStateFlow(listOf<WordCard>())
@@ -392,7 +442,7 @@ if (creator) {
     }
 
 
-    fun updateOfflineWordCardsFlow(): Flow<List<WordCard>> = callbackFlow{
+ suspend fun updateOfflineWordCardsFlow(): Flow<List<WordCard>> = callbackFlow{
         val docRef = db.collection("users").document(wordCardUserId!!)
             .collection("offlinewordcards")
 
@@ -409,9 +459,17 @@ if (creator) {
 
 
                     for (document in snapshot.documents) {
-                        document.toObject(WordCard::class.java)?.let { wordlist.add(it) }
-                        println("kelimeler geliyor")
-                    }
+                        document.toObject(WordCard::class.java)?.let { word ->
+                            wordlist.add(word)
+
+
+                            }
+
+
+
+                        }
+
+
                 trySend(wordlist)
 
 
@@ -422,6 +480,7 @@ if (creator) {
             }else{trySend(emptyList())}
             }
         awaitClose {
+
             listener.remove()
         }
         }
@@ -430,6 +489,7 @@ if (creator) {
         updateOfflineWordCardsFlow().collect { data ->
             // StateFlow içindeki veriyi güncelleyerek UI'a otomatik olarak yansıtın
             _offlineWordCards.value = data
+
 
 
         }
@@ -449,9 +509,8 @@ if (creator) {
 
             print("işlem"+wordcard.documentId)
             _viewingWorCard.value= WordCard()
-            //saveWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl))
-            updateofflineWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl))
-            saveOnlineWordCard(wordcard)
+            updateofflineWordCard(wordcard.copy(addingMode = "offline", imageUrl = imageUrl, updateMode = false))
+            saveOnlineWordCard(wordcard.copy(addingMode = "online", imageUrl = imageUrl, updateMode = false))
             delay(1000)
 
 
@@ -461,7 +520,31 @@ if (creator) {
 
     }
 
-    private fun saveOnlineWordCard(wordcard: WordCard) {
+    private fun saveOnlineWordCard(wordCard: WordCard) {
+        try {
+
+            wordCardUserId?.let {
+                if (wordCard.documentId.isNotBlank()) {
+                    // Firestore update operation
+                    db.collection("wordcards")
+                        .document(wordCard.documentId)
+                        .set(wordCard.copy(learning = "false"))
+                        .addOnSuccessListener {
+                            println("Belge başarıyla güncellendi.")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Belge güncelleme hatası: $e")
+                        }
+                } else {
+                    println("Document ID is null or empty.")
+                }
+            }
+        } catch (e: Exception) {
+            println("çözmen gereken Bir hata oluştu: $e")
+            // Handle the exception as needed
+        }
+
 
     }
+
 }

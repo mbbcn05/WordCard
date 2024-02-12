@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.Button
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,37 +18,22 @@ import kotlinx.coroutines.withContext
 
 
 @Composable
-fun  ImagePicker(context: Context, onImageSelected: (ByteArray) -> Unit,onUriSaved: (Uri)-> Unit) {
+fun  ImagePicker(context: Context,onUriSaved: (Uri)-> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
 
-if (isInternetAvailable(context)){
 
-
-            coroutineScope.launch {
-                val compressedByteArray = withContext(Dispatchers.Default) {
-                    print("HEDEF BÖLÜME GİRİLDİ")
-                    compressImageToByteArray(context, uri, 0.5)
-                }
-                compressedByteArray?.let(onImageSelected)
-                print("compress başarılı")
-            }
-
-
-
-
-            }else{
-                coroutineScope.launch{
+            coroutineScope.launch{
                     val myUri=withContext(Dispatchers.Default) {
                         compressAndSaveImage(context =context ,uri,0.5)}
                 myUri?.let(onUriSaved)
-                }
+
 }
         }
     }
     // Resim seçme butonu
-    Button(onClick = { getContent.launch("image/*") }) {
+    OutlinedButton(onClick = { getContent.launch("image/*") }) {
         Text("Select an image")
     }
 }

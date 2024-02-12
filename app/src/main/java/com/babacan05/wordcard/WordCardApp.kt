@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -23,11 +24,11 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.babacan05.wordcard.presentation.card.BottomNav
 import com.babacan05.wordcard.presentation.card.CardViewModel
+import com.babacan05.wordcard.presentation.card.StudyScreen
 import com.babacan05.wordcard.presentation.profile.ProfileScreen
 import com.babacan05.wordcard.presentation.sign_in.GoogleAuthUiClient
 import com.babacan05.wordcard.presentation.sign_in.SignInScreen
 import com.babacan05.wordcard.presentation.sign_in.SignInViewModel
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 
@@ -97,6 +98,12 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
                                 ).build()
                             )
                         }
+                    },{
+                        navController.navigate("word_card"){
+                            popUpTo("login") {
+                                inclusive = true
+                            }
+                        }
                     }
                 )
             }
@@ -127,12 +134,24 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
         }
         navigation( startDestination = "app_screen",
             route = "word_card"){
+
             composable("app_screen"){
                 val viewModel =  it.sharedViewModel<CardViewModel>(navController)
 
-               BottomNav(viewModel)
+               BottomNav(viewModel){navController.navigate("study_screen"){
+                   popUpTo("app_screen") {
+                       inclusive = false
+                   }
+               }
+               }
 
 
+
+            }
+            composable("study_screen"){
+                val viewModel =  it.sharedViewModel<CardViewModel>(navController)
+//viewModel.updateAllWordCardsIsLearned()
+                StudyScreen(viewModel)
 
             }
 

@@ -1,7 +1,6 @@
 package com.babacan05.wordcard.presentation.card
 
 import android.annotation.SuppressLint
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +18,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -42,9 +42,8 @@ import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.babacan05.wordcard.R
-import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
-import kotlinx.coroutines.delay
+import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.launch
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -57,13 +56,9 @@ fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: Wo
     var imageUrl by rememberSaveable {
         mutableStateOf(wordCard.imageUrl)
     }
-var context: Context =LocalContext.current
-    var selectedByteArray: ByteArray? by rememberSaveable {
-        mutableStateOf(null)
-    }
-    var showingbyteArray by rememberSaveable {
-        mutableStateOf(false)
-    }
+
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -93,7 +88,7 @@ var context: Context =LocalContext.current
             ) {
              Row(){   AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(if(showingbyteArray){selectedByteArray}else{imageUrl})
+                        .data(imageUrl)
                         .crossfade(true)
                         .build(),
                     placeholder = painterResource(R.drawable.rounded_globe_24),
@@ -103,8 +98,7 @@ var context: Context =LocalContext.current
                         .size(100.dp)
                         .clip(RoundedCornerShape(16.dp))
                 )
-                 if(showingbyteArray||imageUrl.isNotEmpty()){IconButton(onClick ={showingbyteArray=false
-                     selectedByteArray=null
+                 if(imageUrl.isNotEmpty()){IconButton(onClick ={
                      imageUrl=""}){
                      Icon(imageVector = Icons.Default.Delete, contentDescription = "",tint = LocalContentColor.current)}
                  }
@@ -162,30 +156,19 @@ var context: Context =LocalContext.current
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                ImagePicker (LocalContext.current, onImageSelected = {byteArray ->
-                    viewModel.viewModelScope.launch {
-
-                        selectedByteArray=byteArray
-                        showingbyteArray=true
-                        //  imageUrl=viewModel.uploadImageToCloud(byteArray )
-
-                    }}){
+                ImagePicker (LocalContext.current){
 
                     imageUrl=it.toString()
                     print("Hedef kısım çalıştı")
 
                 }
-                Button(enabled = !word.isEmpty()&&!translate.isEmpty(), modifier=Modifier.fillMaxWidth(),
+               OutlinedButton(enabled = !word.isEmpty()&&!translate.isEmpty(), modifier=Modifier.fillMaxWidth(),
                     onClick = {
 
 
 
                         viewModel.viewModelScope.launch {
-                            if (isInternetAvailable(context = context)) {
-                                selectedByteArray?.let {
-                                    imageUrl = viewModel.uploadImageToCloud(it)
-                                }
-                            }
+
 
                                 viewModel.saveWordCard(
                                     WordCard(
@@ -209,7 +192,7 @@ var context: Context =LocalContext.current
 
                     }
                 ) {
-                    Text("Save WordCard")
+                    Text("Save WordCard", color = hilalsColor)
                 }
             }
         }

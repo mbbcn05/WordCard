@@ -19,15 +19,23 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonElevation
 import androidx.compose.material.Card
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Snackbar
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -40,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,7 +65,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 
-@SuppressLint("UnrememberedMutableState")
+
 @Composable
 fun WordCardViewScreen(
     wordCard: WordCard,
@@ -69,13 +78,17 @@ fun WordCardViewScreen(
 
 ) {
 val context= LocalContext.current
+    var learned by rememberSaveable {
+        mutableStateOf(wordCard.learning != "false")
+    }
+
     Card(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         elevation = 8.dp,
         shape = RoundedCornerShape(16.dp),
-        backgroundColor = Color.Black
+        backgroundColor = Color.DarkGray
     ) {
         Column(
             modifier = Modifier
@@ -112,7 +125,9 @@ val context= LocalContext.current
                         placeholder = painterResource(R.drawable.rounded_globe_24),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.clip(CircleShape).size(200.dp)
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(200.dp)
                     )
                     Text(
                         text = wordCard.word.uppercase(),
@@ -166,7 +181,7 @@ val context= LocalContext.current
                             )
 
                     ) {
-                        Button(
+                        OutlinedButton(shape = RoundedCornerShape(15.dp),
                             onClick = editClick,
                             modifier = Modifier
                                 .weight(1f)
@@ -176,12 +191,18 @@ val context= LocalContext.current
                         }
 
                         Spacer(modifier = Modifier.width(16.dp))
+                        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                            Checkbox(checked = learned, onCheckedChange ={learned=!learned
+                         // viewModel.updateIsLearned(wordCard,learned, context = context)
+                                viewModel.updateofflineWordCard(wordCard.copy(learning = if(it){"true"}else{"false"}))
+                            })
+                            Text(fontSize = 10.sp,text = "Learned")
+                        }
 
-                        Button(
+                        Spacer(modifier = Modifier.width(16.dp))
+                        OutlinedButton(shape = RoundedCornerShape(15.dp),
                             onClick = {
-if (!isInternetAvailable(context =context )&&wordCard.addingMode=="online"&&wordCard.creatorId!=viewModel.wordCardUserId){
-    Toast.makeText(context, "Bu işleminiz online olduğunuzda gerçekleşecektir.", Toast.LENGTH_SHORT).show()
-}
+
                                 deleteClick()
                                 onFinish()}
                             ,
@@ -204,6 +225,3 @@ if (!isInternetAvailable(context =context )&&wordCard.addingMode=="online"&&word
 
         }
     }
-
-
-
