@@ -1,5 +1,4 @@
 package com.babacan05.wordcard.presentation.card
-
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Icon
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -54,7 +54,9 @@ import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.widget.Constraints
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
@@ -62,10 +64,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import com.babacan05.wordcard.R
+import com.babacan05.wordcard.common.ReminderWorker
 import com.babacan05.wordcard.model.WordCard
 import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
+
 
 
 sealed class BottomNavScreens(val route: String, val icon: ImageVector?, val label: String) {
@@ -233,7 +243,32 @@ fun SettingsScreen() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+
+        val context= LocalContext.current
         Text(text = "Settings screen")
+        Button(onClick = {
+
+
+            val reminderWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(
+                5, TimeUnit.MINUTES
+            )
+
+                .build()
+
+            val workManager = WorkManager.getInstance(context)
+            workManager.enqueueUniquePeriodicWork(
+                "reminderWork",
+                ExistingPeriodicWorkPolicy.REPLACE,
+                reminderWorkRequest
+            )
+
+
+        }){
+Text(text = "wrker")
+        }
+
+
+
     }
 }
 
@@ -257,7 +292,8 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
 
                     selected = currentRoute == BottomNavScreens.Home.route,
                     label = { if(clictedItem==1){
-                        Text(text = " ")} },
+                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                        Text(text = "  ") }},
                     onClick = {
                         clictedItem=1
                         navController.navigate(BottomNavScreens.Home.route) {
@@ -273,8 +309,9 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
                 // Dashboard Tab
                 BottomNavigationItem(
                     icon = {   Icon(painterResource(R.drawable.rounded_globe_24), contentDescription = null)},
-                    label = {if(clictedItem==2){
-                        Text(text = " ")}},
+                    label = { if(clictedItem==2){
+                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                        Text(text = "  ") }},
                     selected = currentRoute == BottomNavScreens.Search.route,
                     onClick = {
                         clictedItem=2
@@ -291,8 +328,9 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
                 // Notifications Tab
                 BottomNavigationItem(
                     icon = { Icon(painterResource(R.drawable.studying_1080939), contentDescription = null) },
-                    label = {if(clictedItem==3){
-                        Text(text = " ")}},
+                    label = { if(clictedItem==3){
+                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                        Text(text = "  ") }},
                     selected = currentRoute == BottomNavScreens.Study.route,
                     onClick = {
                         clictedItem=3
@@ -309,8 +347,9 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
                 // Settings Tab
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    label = {if(clictedItem==4){
-                        Text(text = " ")} },
+                    label = { if(clictedItem==4){
+                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                        Text(text = "  ") }},
                     selected = currentRoute == BottomNavScreens.Settings.route,
                     onClick = {
                         clictedItem=4

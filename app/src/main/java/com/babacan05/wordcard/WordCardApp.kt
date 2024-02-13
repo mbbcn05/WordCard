@@ -14,7 +14,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -150,9 +149,12 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
             }
             composable("study_screen"){
                 val viewModel =  it.sharedViewModel<CardViewModel>(navController)
-//viewModel.updateAllWordCardsIsLearned()
-                StudyScreen(viewModel)
-
+                StudyScreen(viewModel) { navController.navigate("word_card"){
+                    popUpTo("word_card") {
+                        inclusive = false
+                    }
+                } }
+            }
             }
 
         }
@@ -160,7 +162,7 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
 
 
 
-}
+
 
 @Composable
 inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {

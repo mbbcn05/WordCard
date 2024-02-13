@@ -193,8 +193,23 @@ val context= LocalContext.current
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                             Checkbox(checked = learned, onCheckedChange ={learned=!learned
-                         // viewModel.updateIsLearned(wordCard,learned, context = context)
+
                                 viewModel.updateofflineWordCard(wordCard.copy(learning = if(it){"true"}else{"false"}))
+                                if(it) {
+
+                                    Toast.makeText(
+                                        context,
+                                        "The WordCard is marked as learned",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }else{
+                                    Toast.makeText(
+                                        context,
+                                        "The WordCard is marked as being studied",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+
                             })
                             Text(fontSize = 10.sp,text = "Learned")
                         }

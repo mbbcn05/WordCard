@@ -356,41 +356,7 @@ print("CALLBACK BAŞARILI$fieldValue")
     }
 
 }
-fun updateIsLearned(wordCard:WordCard,isLearned:String,context: Context) {
 
-    val updateData = hashMapOf(
-        "isLearned" to isLearned
-    )
-
-    if (wordCardUserId != null) {
-        db.collection("users")
-            .document(wordCardUserId)
-            .collection("offlinewordcards")
-            .document(wordCard.documentId)
-            .update(updateData as Map<String, Any>)
-            .addOnSuccessListener {
-               // _viewingWorCard.value=_viewingWorCard.value.copy(isLearned=isLearned)
-                if(isLearned=="true") {
-
-                    Toast.makeText(
-                        context,
-                        "The WordCard is marked as learned",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }else{
-                    Toast.makeText(
-                        context,
-                        "The WordCard is marked as being studied",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-            .addOnFailureListener { e ->
-
-            }
-    }
-
-}
 
     fun searchWordCardOnline(s: String) {
         // val wordListFlow = MutableStateFlow(listOf<WordCard>())

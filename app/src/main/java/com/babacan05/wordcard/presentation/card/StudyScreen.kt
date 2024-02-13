@@ -8,13 +8,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Checkbox
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Snackbar
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,12 +32,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -41,6 +49,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.babacan05.wordcard.R
 import com.babacan05.wordcard.model.WordCard
 import kotlinx.coroutines.delay
 import kotlin.math.PI
@@ -48,7 +59,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun StudyScreen(viewModel: CardViewModel) {
+fun StudyScreen(viewModel: CardViewModel, function: () -> Unit) {
 
     val wordCards = viewModel.offlineWordCards.collectAsState().value.toMutableList().shuffled().filter { it.learning=="false" }
     var viewingcardNumber by rememberSaveable {
@@ -58,7 +69,20 @@ fun StudyScreen(viewModel: CardViewModel) {
     Box(modifier = Modifier) {
 
 val context= LocalContext.current
-if(wordCards.size>0){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .align(Alignment.TopStart),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(onClick =function) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            }
+        }
+
+
+        if(wordCards.size>0){
         Question(modifier=Modifier.fillMaxSize(),wordCard = wordCards[viewingcardNumber],viewModel) {
 
             if (viewingcardNumber < wordCards.size - 1) {
@@ -91,14 +115,15 @@ fun Question(
 
     nextquestion: () -> Unit
 ){
-    var learned by remember {mutableStateOf(false)}
-
-    LaunchedEffect(key1 =wordCard) {
-        viewModel.getİsLearned(wordCard.documentId){
-            learned=it
-            if(it){nextquestion()}else{learned=false}
-        }
+    var learned by remember {
+   mutableStateOf(false)
+     }
+    LaunchedEffect(key1 = wordCard){
+        delay(500)
+        learned=false
     }
+
+
 
     var showMessage by rememberSaveable {
         mutableStateOf(false)
@@ -196,8 +221,22 @@ Box(modifier=Modifier.align(Alignment.Center)) {
         }
             Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 Checkbox(checked = learned, onCheckedChange ={learned=!learned
-                   // viewModel.updateIsLearned(wordCard,learned, context = context)
+
                     viewModel.updateofflineWordCard(wordCard.copy(learning = if(it){"true"}else{"false"}))
+                    if(it) {
+
+                        Toast.makeText(
+                            context,
+                            "The WordCard is marked as learned",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }else{
+                        Toast.makeText(
+                            context,
+                            "The WordCard is marked as being studied",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 })
                 Text(fontSize = 10.sp,text = "Learned")
             }
@@ -212,6 +251,30 @@ Box(modifier=Modifier.align(Alignment.Center)) {
         }, enabled = trueAnswer||gameOver) {
             Text(text = "Next Question")
         }}
+        if(gameOver){
+            Spacer(modifier=Modifier.size(40.dp))
+            Box(){
+
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(wordCard.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.rounded_globe_24),
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(100.dp)
+                )
+                if(wordCard.synonyms.isNotEmpty()){
+                    Text(modifier=Modifier.align(Alignment.BottomCenter),text =wordCard.synonyms )}
+                if(wordCard.sentence.isNotEmpty()){
+                    Text(modifier=Modifier.align(Alignment.Center),text = wordCard.sentence)
+                }
+            }
+
+        }
     }
 
 }
