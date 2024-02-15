@@ -1,14 +1,16 @@
 package com.babacan05.wordcard.presentation.card
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.drawable.Icon
+import android.widget.Toast
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -19,21 +21,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Button
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.FloatingActionButtonDefaults
-import androidx.compose.material.FloatingActionButtonElevation
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -50,13 +52,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Button
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.widget.Constraints
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
@@ -65,10 +66,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.WorkerParameters
 import com.babacan05.wordcard.R
 import com.babacan05.wordcard.common.ReminderWorker
 import com.babacan05.wordcard.model.WordCard
@@ -238,39 +237,151 @@ fun StudyCardsScreen(navigateStudy:()->Unit) {
 }
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(viewModel:CardViewModel) {
+    val context= LocalContext.current
+
+    var saveEnabled  by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var expanded by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var expandedNumbers by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var settings by rememberSaveable {
+        mutableStateOf(viewModel.getSettings(context = context))
+    }
+
+
+
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 15.dp),
         contentAlignment = Alignment.Center
     ) {
+      Icon(modifier = Modifier.align(Alignment.TopCenter), painter = painterResource(id = R.drawable.notify), contentDescription ="" )
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceBetween) {
 
-        val context= LocalContext.current
-        Text(text = "Settings screen")
-        Button(onClick = {
+Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
 
+Text(text = "Set up your WordCard reminder.", fontWeight = FontWeight.Bold)
+Switch(checked = settings.reminderMode, onCheckedChange = {
+    settings=settings.copy(reminderMode =it)
+    saveEnabled=true
 
-            val reminderWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(
-                5, TimeUnit.MINUTES
-            )
-
-                .build()
-
-            val workManager = WorkManager.getInstance(context)
-            workManager.enqueueUniquePeriodicWork(
-                "reminderWork",
-                ExistingPeriodicWorkPolicy.REPLACE,
-                reminderWorkRequest
-            )
-
-
-        }){
-Text(text = "wrker")
-        }
-
-
-
+})
+}
+       if(settings.reminderMode) {
+           Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+               Text(text = "Your reminder will be shown every  ")
+               Row(verticalAlignment = Alignment.CenterVertically) {
+                   Text(
+                       text =settings.repeatinterval.toString(),
+                       modifier = Modifier.clickable { expandedNumbers = true }
+                   )
+                   Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription ="" )
+                   DropdownMenu(
+                       scrollState = ScrollState(settings.repeatinterval.toInt()),
+                       expanded = expandedNumbers,
+                       onDismissRequest = { expandedNumbers = false },
+                       modifier = Modifier.padding(8.dp)
+                   ) {
+for(a in 1..100) {
+    DropdownMenuItem(onClick = {
+        settings = settings.copy(repeatinterval =a.toLong())
+        expandedNumbers = false
+        saveEnabled = true
+    }) {
+        Text(a.toString())
     }
 }
+                   }
+               }
+                   // DropdownMenu
+                   Box(modifier = Modifier.padding(start = 8.dp)) {
+                       Row(verticalAlignment = Alignment.CenterVertically) {
+
+                           Text(
+                               text = when (settings.timeUnit) {
+                                   TimeUnit.DAYS -> "Days"
+                                   TimeUnit.HOURS -> "Hours"
+                                   TimeUnit.MINUTES -> "Minutes"
+                                   else -> ""
+                               },
+                               modifier = Modifier.clickable { expanded = true }
+                           )
+                           Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "")
+                           DropdownMenu(
+                               expanded = expanded,
+                               onDismissRequest = { expanded = false },
+                               modifier = Modifier.padding(8.dp)
+                           ) {
+                               DropdownMenuItem(onClick = {
+                                   settings = settings.copy(timeUnit = TimeUnit.MINUTES)
+                                   expanded = false
+                                   saveEnabled = true
+                               }) {
+                                   Text("Minutes")
+                               }
+
+                               DropdownMenuItem(onClick = {
+                                   settings = settings.copy(timeUnit = TimeUnit.HOURS)
+                                   expanded = false
+                                   saveEnabled = true
+                               }) {
+                                   Text("Hours")
+                               }
+
+                               DropdownMenuItem(onClick = {
+                                   settings = settings.copy(timeUnit = TimeUnit.DAYS)
+                                   expanded = false
+                                   saveEnabled = true
+                               }) {
+                                   Text("Days")
+                               }
+                           }
+                       }
+                   }}
+           }
+
+            Button(enabled=saveEnabled,onClick = {
+
+viewModel.uploadSettings(context = context, settings = settings)
+         if(settings.reminderMode) {
+             Toast.makeText(context,"Your reminder was set successfully", Toast.LENGTH_LONG).show()
+             val reminderWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(
+                 settings.repeatinterval, settings.timeUnit
+             )
+                 //.setConstraints(constraints)
+                 .setInitialDelay(settings.repeatinterval, settings.timeUnit)
+                 .build()
+
+             val workManager = WorkManager.getInstance(context)
+             workManager.enqueueUniquePeriodicWork(
+                 "reminderWork",
+                 ExistingPeriodicWorkPolicy.REPLACE,
+                 reminderWorkRequest
+             )
+
+
+         }else{
+             WorkManager.getInstance(context).cancelAllWork()
+             Toast.makeText(context,"Your reminder has been closed successfully",Toast.LENGTH_LONG).show()
+
+         }  }) {
+                Text(text = "Save your changes!")
+            }
+       }
+
+
+
+
+
+        }
+    }
+
+
 
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -327,7 +438,7 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
 
                 // Notifications Tab
                 BottomNavigationItem(
-                    icon = { Icon(painterResource(R.drawable.studying_1080939), contentDescription = null) },
+                    icon = { Icon(painterResource(R.drawable.reading), contentDescription = null) },
                     label = { if(clictedItem==3){
                         Text(overflow = TextOverflow.Visible, text = "____________")}else{
                         Text(text = "  ") }},
@@ -381,7 +492,7 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
             }
             composable(BottomNavScreens.Search.route) { SearchScreen(viewModel,navController,lazyListSearchState) }
             composable(BottomNavScreens.Study.route) { StudyCardsScreen(navigateStudy) }
-            composable(BottomNavScreens.Settings.route) { SettingsScreen() }
+            composable(BottomNavScreens.Settings.route) { SettingsScreen(viewModel) }
             composable("NewCardScreen") {
 
                 NewWordCardScreen(

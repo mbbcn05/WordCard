@@ -8,13 +8,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import com.babacan05.wordcard.R
+import com.babacan05.wordcard.model.WordCard
 
 object NotificationUtils {
     private const val CHANNEL_ID = "My_Channel_Id"
     private const val CHANNEL_NAME = "My Channel"
-    private const val NOTIFICATION_ID = 1
 
-    fun showNotification(context: Context, title: String, message: String) {
+    fun showNotification(context: Context, card: WordCard) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -27,17 +27,21 @@ object NotificationUtils {
                 description = "My channel description"
                 enableLights(true)
                 lightColor = Color.Blue.toArgb()
+
             }
             notificationManager.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(message)
+
+            .setContentTitle("Your next word...")
+            .setContentText(card.word.uppercase())
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        notificationManager.notify(card.documentId.hashCode(), notification)
     }
 }
+
+

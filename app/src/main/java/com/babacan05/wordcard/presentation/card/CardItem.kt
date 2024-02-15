@@ -43,7 +43,7 @@ fun WordCardItem(wordCard: WordCard, modifier: Modifier = Modifier, onClick: () 
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = modifier.background(hilalsColor)
+            modifier = modifier.background(Color(wordCard.color))
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)

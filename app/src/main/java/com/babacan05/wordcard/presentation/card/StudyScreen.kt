@@ -66,7 +66,7 @@ fun StudyScreen(viewModel: CardViewModel, function: () -> Unit) {
         mutableIntStateOf(0)
     }
 
-    Box(modifier = Modifier) {
+    Box(modifier = Modifier.fillMaxSize()) {
 
 val context= LocalContext.current
         Row(
@@ -209,7 +209,7 @@ Box(modifier=Modifier.align(Alignment.Center)) {
         Row {
 
 
-        Button(onClick = {
+        Button(enabled=!trueAnswer,onClick = {
             userAnswer=wordCard.translate
             gameOver=true
             trueAnswer=false

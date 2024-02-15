@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Snackbar
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
@@ -81,14 +83,19 @@ val context= LocalContext.current
     var learned by rememberSaveable {
         mutableStateOf(wordCard.learning != "false")
     }
-
+var color by rememberSaveable {
+    mutableStateOf(wordCard.color)
+}
+    var showPicker by rememberSaveable {
+        mutableStateOf(false)
+    }
     Card(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         elevation = 8.dp,
         shape = RoundedCornerShape(16.dp),
-        backgroundColor = Color.DarkGray
+        backgroundColor =Color(color).copy(alpha = 0.4F)
     ) {
         Column(
             modifier = Modifier
@@ -96,11 +103,25 @@ val context= LocalContext.current
                 .padding(16.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            IconButton(modifier=Modifier.align(Alignment.Start),onClick = { onFinish() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-            }
+           Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()){
 
 
+               IconButton(modifier = Modifier.align(Alignment.Top), onClick = { onFinish() }) {
+                   Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+               }
+              Image(modifier = Modifier
+                  .size(30.dp)
+                  .align(Alignment.CenterVertically)
+                  .clickable { showPicker = true },painter = painterResource(id = R.drawable.picker), contentDescription = "")
+
+             if(showPicker) {
+                 CustomColorPicker(initialColor = wordCard.color.toInt(), onColorSelected = {
+                     color = it.toLong()
+                 }) {
+                showPicker=false
+                 }
+             }
+           }
 
             Box(
                 modifier = Modifier
@@ -117,54 +138,72 @@ val context= LocalContext.current
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                   if(wordCard.imageUrl.isNotEmpty()){
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(wordCard.imageUrl)
                             .crossfade(true)
-                            .build(),
-                        placeholder = painterResource(R.drawable.rounded_globe_24),
+                            .build(), placeholder = painterResource(R.drawable.rounded_globe_24),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .clip(CircleShape)
                             .size(200.dp)
-                    )
-                    Text(
-                        text = wordCard.word.uppercase(),
-                        fontSize = if (wordCard.word.length < 5) 100.sp else if(wordCard.word.length < 7)80.sp else if(wordCard.word.length < 11)40.sp else 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    )}
+                    Box(
                         modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(15.dp)),
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        ) {
+                        Text(
+                            text = wordCard.word.uppercase(),
+                            fontSize = if (wordCard.word.length < 5) 100.sp else if (wordCard.word.length < 7) 80.sp else if (wordCard.word.length < 11) 40.sp else 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.align(Alignment.TopCenter)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(5.dp)),
 
-                    Text(modifier = Modifier.background(Color.Green.copy(alpha = 0.1f)),
+                        ){
+                    Text(
+                        modifier = Modifier.background(Color.Green.copy(alpha = 0.1f)),
                         text = wordCard.translate,
                         fontSize = 18.sp,
-                        color = Color.Gray,
+                        color = Color.White,
                         maxLines = 1
                     )
-
+                }
                     Spacer(modifier = Modifier.height(16.dp))
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(5.dp)),
 
+                        ){
                     Text(
                         text = wordCard.synonyms,
                         fontSize = 16.sp,
-                        color = Color.Gray,
+                        color = Color.White,
                         maxLines = 1
-                    )
+                    )}
 
                     Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(3.dp)),
 
-                    Text(
-                        text = wordCard.sentence,
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-
+                        ) {
+                        Text(
+                            text = wordCard.sentence,
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Resim seçme butonu
@@ -191,29 +230,46 @@ val context= LocalContext.current
                         }
 
                         Spacer(modifier = Modifier.width(16.dp))
-                        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                            Checkbox(checked = learned, onCheckedChange ={learned=!learned
+                        Box(
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                                .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(5.dp)),
 
-                                viewModel.updateofflineWordCard(wordCard.copy(learning = if(it){"true"}else{"false"}))
-                                if(it) {
+                            ) {
+                            Column(
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Checkbox(checked = learned, onCheckedChange = {
+                                    learned = !learned
 
-                                    Toast.makeText(
-                                        context,
-                                        "The WordCard is marked as learned",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }else{
-                                    Toast.makeText(
-                                        context,
-                                        "The WordCard is marked as being studied",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                    viewModel.updateofflineWordCard(
+                                        wordCard.copy(
+                                            learning = if (it) {
+                                                "true"
+                                            } else {
+                                                "false"
+                                            }
+                                        )
+                                    )
+                                    if (it) {
 
-                            })
-                            Text(fontSize = 10.sp,text = "Learned")
+                                        Toast.makeText(
+                                            context,
+                                            "The WordCard is marked as learned",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "The WordCard is marked as being studied",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+
+                                })
+                                Text(fontSize = 10.sp, text = "Learned")
+                            }
                         }
-
                         Spacer(modifier = Modifier.width(16.dp))
                         OutlinedButton(shape = RoundedCornerShape(15.dp),
                             onClick = {
@@ -238,5 +294,5 @@ val context= LocalContext.current
             }
         }
 
-        }
-    }
+        }}
+

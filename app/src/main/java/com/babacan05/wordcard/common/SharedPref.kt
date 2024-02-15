@@ -5,93 +5,42 @@ import android.content.SharedPreferences
 import com.babacan05.wordcard.model.WordCard
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
+import java.io.Serializable
+import java.util.concurrent.TimeUnit
 
 
 
-class ImageData(val byteArray: ByteArray)
 class MySharedPreferences(context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
     private val gson = Gson()
 
-    fun saveWordCard(wordCard: WordCard) {
-        val updatedList = getWordCardList().toMutableList()
-        updatedList.add(wordCard.copy(documentId = getWordCardDocumentId()))
-        updateWordCardList(updatedList)
-        print("wordcard eklendi")
+
+    fun updateSettings(settings:Settings){
+        val json = gson.toJson(settings)
+        sharedPreferences.edit().putString("settings", json).apply()
+
+
+
     }
 
-    private fun updateWordCardList(wordCardList: List<WordCard>) {
-        val json = gson.toJson(wordCardList)
-        sharedPreferences.edit().putString("WORDCARD", json).apply()
-    }
-
-    fun getWordCardList(): List<WordCard> {
-        val json = sharedPreferences.getString("WORDCARD", null)
+    fun getSettings():Settings{
+        val json = sharedPreferences.getString("settings", null)
         return if (json != null) {
-            val type = object : TypeToken<List<WordCard>>() {}.type
+            val type = object : TypeToken<Settings>() {}.type
             gson.fromJson(json, type)
         } else {
-            emptyList()
+           Settings()
         }
+
     }
 
-    fun updateWordCard(wordCard: WordCard) {
-        val wordCards = getWordCardList().toMutableList()
-        val updatingWordCard = wordCards.find { it.documentId == wordCard.documentId }
-        updatingWordCard?.let {
-            wordCards.remove(it)
-            wordCards.add(wordCard)
-            updateWordCardList(wordCards)
-        }
-    }
-
-    fun deleteWordCard(wordCard: WordCard) {
-        val wordCards = getWordCardList().toMutableList()
-        val deletingWordCard = wordCards.find { it.documentId == wordCard.documentId }
-        deletingWordCard?.let {
-            wordCards.remove(it)
-            updateWordCardList(wordCards)
-        }
-    }
-
-    private fun getWordCardDocumentId(): String {
-        val json = sharedPreferences.getString("CARDID", null)
-        val returningId = if (json != null) {
-            gson.fromJson(json, String::class.java)
-        } else {
-            "0"
-        }
-        updateWordCardDocumentId((returningId.toInt() + 1).toString())
-        return returningId
-    }
-
-    private fun updateWordCardDocumentId(id: String) {
-        val json = gson.toJson(id)
-        sharedPreferences.edit().putString("CARDID", json).apply()
-    }
-
-    fun resetSharedPrefWordCards() {
-        sharedPreferences.edit().remove("WORDCARD").apply()
-        sharedPreferences.edit().remove("CARDID").apply()
-    }
-
-
-    fun saveImage(byteArray: ByteArray, belgeId: String) {
-        val json = gson.toJson(ImageData(byteArray))
-        sharedPreferences.edit().putString(belgeId, json).apply()
-    }
-    fun saveOfflineImageState(imagestate:Boolean){
-        val json = gson.toJson(imagestate)
-        sharedPreferences.edit().putBoolean("imagestate",imagestate).apply()
-    }
-    fun geOfflineImageState():Boolean{
-        val json = sharedPreferences.getString("imagestate",null)
-        return if (json != null) {
-            val type = object : TypeToken<Boolean>() {}.type
-            gson.fromJson(json, type)
-        } else {
-           false
-        }
-    }
 }
+
+
+data class Settings(
+    val reminderMode:Boolean=false,
+    val repeatinterval:Long=1,
+    val timeUnit:TimeUnit=TimeUnit.DAYS,
+    val arrangementOfWords:String="sortedByNames"): Serializable
+

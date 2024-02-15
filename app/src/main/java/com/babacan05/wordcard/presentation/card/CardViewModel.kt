@@ -3,33 +3,27 @@ package com.babacan05.wordcard.presentation.card
 
 
 import android.content.Context
-import android.net.Uri
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.babacan05.wordcard.common.FileUtil
 import com.babacan05.wordcard.common.MySharedPreferences
+import com.babacan05.wordcard.common.Settings
 import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.common.readByteArrayFromFileUri
 import com.babacan05.wordcard.model.WordCard
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -55,6 +49,10 @@ class CardViewModel :ViewModel() {
         }
 
 
+    }
+fun getSettings(context: Context)=MySharedPreferences(context).getSettings()
+    fun uploadSettings(settings: Settings,context: Context){
+        MySharedPreferences(context = context).updateSettings(settings)
     }
 
     suspend fun uploadImageToCloud(imageByteArray: ByteArray):String {
