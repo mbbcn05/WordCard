@@ -2,6 +2,7 @@ package com.babacan05.wordcard.presentation.card
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +20,9 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Snackbar
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,9 +68,12 @@ fun StudyScreen(viewModel: CardViewModel, function: () -> Unit) {
         mutableIntStateOf(0)
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+          ) {
 
 val context= LocalContext.current
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -77,7 +82,7 @@ val context= LocalContext.current
             horizontalArrangement = Arrangement.Start
         ) {
             IconButton(onClick =function) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.Black)
             }
         }
 
@@ -95,7 +100,7 @@ val context= LocalContext.current
             }}
         }
 else{
-        Text(text = "There is no word marked as being studied")
+        Text(modifier = Modifier.align(Alignment.Center), text = "There is no word marked as being studied!")
     }
     }
 }
@@ -125,9 +130,7 @@ fun Question(
 
 
 
-    var showMessage by rememberSaveable {
-        mutableStateOf(false)
-    }
+
     val context= LocalContext.current
 
 var trueAnswer by rememberSaveable {
@@ -143,19 +146,7 @@ var trueAnswer by rememberSaveable {
     var currentTime by remember{
         mutableStateOf(60000L)
     }
-    if (showMessage) {
-        Snackbar(
-            modifier = Modifier.padding(16.dp),
-            action = {
-                Button(onClick = { showMessage = false }) {
-                    Text("Close")
 
-                }
-            }
-        ) {
-            Text(text = wordCard.synonyms+wordCard.sentence)
-        }
-    }
     Box(modifier=modifier.padding(top = 110.dp,end=0.dp,start=0.dp,bottom=0.dp)){
 
        if (!trueAnswer&&!gameOver){
@@ -166,12 +157,12 @@ var trueAnswer by rememberSaveable {
     }
     }
            if(gameOver){
-             Image(painter = painterResource(id =com.babacan05.wordcard.R.drawable.pngegg), contentDescription ="",modifier= Modifier
+             Image(painter = painterResource(id = R.drawable.pngegg), contentDescription ="",modifier= Modifier
                  .align(Alignment.TopCenter ))
            }
 if(!gameOver&&trueAnswer){
-    Image(painter = painterResource(id =com.babacan05.wordcard.R.drawable.checktrue), contentDescription ="" ,modifier= Modifier
-        .align(Alignment.TopCenter ))
+    Image(painter = painterResource(id = R.drawable.checktrue), contentDescription ="" ,modifier= Modifier
+        .align(Alignment.TopCenter ).size(100.dp))
 }
 
 
@@ -181,11 +172,11 @@ if(!gameOver&&trueAnswer){
 
 Box(modifier=Modifier.align(Alignment.Center)) {
     Column(
-        verticalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.SpaceAround,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = wordCard.word.uppercase(),
+            text = wordCard.word.uppercase()+" ?",
             fontSize = if (wordCard.word.length < 5) 100.sp else if(wordCard.word.length < 7)80.sp else if(wordCard.word.length < 11)40.sp else 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -193,10 +184,17 @@ Box(modifier=Modifier.align(Alignment.Center)) {
             overflow = TextOverflow.Ellipsis,
 
         )
+        val customTextFieldColors = TextFieldDefaults.textFieldColors(
+            textColor = Color.Black, // Kullanıcının girdiği metnin rengi
+            backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
+            cursorColor = Color.Black, // Metin imlecinin rengi
+            focusedIndicatorColor = Color.Transparent, // Odaklanıldığında gösterilen gösterge rengi
+            unfocusedIndicatorColor = Color.Transparent, // Odak kaldırıldığında gösterilen gösterge rengi
+            disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
+        )
 
-
-        Spacer(modifier = Modifier.size(10.dp))
-        OutlinedTextField(enabled=!trueAnswer&&!gameOver,isError =!trueAnswer,label={ Text(text = "Give your answer")},value = userAnswer, onValueChange = {
+        Spacer(modifier = Modifier.size(30.dp))
+        OutlinedTextField( colors=customTextFieldColors, enabled=!trueAnswer&&!gameOver,isError =!trueAnswer,label={ Text(color = Color.Blue, text = "Give your answer")},value = userAnswer, onValueChange = {
            if(userAnswer!=wordCard.translate&&!gameOver){ userAnswer = it}
             trueAnswer = if (it == wordCard.translate) {
                 true

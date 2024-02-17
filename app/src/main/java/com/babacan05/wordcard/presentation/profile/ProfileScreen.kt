@@ -25,7 +25,10 @@ fun ProfileScreen(
     onSignOut: () -> Unit,
     card_app: () -> Unit,
 ) {
+LaunchedEffect(key1 = true){
+card_app()
 
+}
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,

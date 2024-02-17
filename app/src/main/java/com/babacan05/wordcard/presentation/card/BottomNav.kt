@@ -2,7 +2,17 @@ package com.babacan05.wordcard.presentation.card
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,11 +23,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Button
@@ -30,6 +45,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -73,6 +89,7 @@ import com.babacan05.wordcard.common.ReminderWorker
 import com.babacan05.wordcard.model.WordCard
 import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.launch
+import org.intellij.lang.annotations.JdkConstants.VerticalScrollBarPolicy
 import java.util.concurrent.TimeUnit
 
 
@@ -109,19 +126,27 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
 
 
 
-
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
 
+val scrollState=ScrollState(1)
         Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
             // Search TextField
-            OutlinedTextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
+            val customTextFieldColors = TextFieldDefaults.textFieldColors(
+                textColor = Color.Black, // Kullanıcının girdiği metnin rengi
+                backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
+                cursorColor = Color.Black, // Metin imlecinin rengi
+                focusedIndicatorColor = Color.Blue, // Odaklanıldığında gösterilen gösterge rengi
+                unfocusedIndicatorColor = Color.Black, // Odak kaldırıldığında gösterilen gösterge rengi
+                disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
+            )
+            OutlinedTextField(colors = customTextFieldColors, keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
                 keyboardType= KeyboardType.Text, imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onNext = null),
                 value = searchQuery,
@@ -135,22 +160,14 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
             )
-            LazyColumn(state = state) {
-                items(filteredWordList) {
-
-
-
-                    WordCardItem(wordCard = it) {
-           //checkingmigratewords++
-                        viewModel.updateViewingWordCard(it)
+            LazyVerticalGrid(userScrollEnabled =true , columns = GridCells.Fixed(2)) {
+                items(filteredWordList) { word ->
+                    WordCardItem(wordCard = word) {
+                        viewModel.updateViewingWordCard(word)
                         navController.navigate("WordCardViewScreen")
                     }
-
-
                 }
-
             }
-
 
 
         }
@@ -178,6 +195,14 @@ fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,stat
     LaunchedEffect(key1 = searchQuery) {
     viewModel.searchWordCardOnline(searchQuery)
 }
+    val customTextFieldColors = TextFieldDefaults.textFieldColors(
+        textColor = Color.Black, // Kullanıcının girdiği metnin rengi
+        backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
+        cursorColor = Color.Black, // Metin imlecinin rengi
+        focusedIndicatorColor = Color.Blue, // Odaklanıldığında gösterilen gösterge rengi
+        unfocusedIndicatorColor = Color.Black, // Odak kaldırıldığında gösterilen gösterge rengi
+        disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
+    )
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -189,7 +214,7 @@ fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,stat
                 .padding(16.dp)
         ) {
             // Search TextField
-            OutlinedTextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
+            OutlinedTextField(colors = customTextFieldColors, keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
                 keyboardType= KeyboardType.Text, imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onNext = null),
                 value = searchQuery,
@@ -226,10 +251,14 @@ fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,stat
 @Composable
 fun StudyCardsScreen(navigateStudy:()->Unit) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(15.dp
+        ),
         contentAlignment = Alignment.Center
-    ) {
-       Button(navigateStudy){
+    )
+
+    {
+        Image(painter = painterResource(id = R.drawable.work), contentDescription = "")
+       Button(modifier = Modifier.align(Alignment.BottomCenter), onClick = navigateStudy){
            Text(text = "Lets Study")
 
        }
@@ -257,122 +286,154 @@ fun SettingsScreen(viewModel:CardViewModel) {
 
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 15.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 5.dp, vertical = 15.dp),
         contentAlignment = Alignment.Center
     ) {
       Icon(modifier = Modifier.align(Alignment.TopCenter), painter = painterResource(id = R.drawable.notify), contentDescription ="" )
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceBetween) {
-
-Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
-
-Text(text = "Set up your WordCard reminder.", fontWeight = FontWeight.Bold)
-Switch(checked = settings.reminderMode, onCheckedChange = {
-    settings=settings.copy(reminderMode =it)
-    saveEnabled=true
-
-})
-}
-       if(settings.reminderMode) {
-           Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-               Text(text = "Your reminder will be shown every  ")
-               Row(verticalAlignment = Alignment.CenterVertically) {
-                   Text(
-                       text =settings.repeatinterval.toString(),
-                       modifier = Modifier.clickable { expandedNumbers = true }
-                   )
-                   Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription ="" )
-                   DropdownMenu(
-                       scrollState = ScrollState(settings.repeatinterval.toInt()),
-                       expanded = expandedNumbers,
-                       onDismissRequest = { expandedNumbers = false },
-                       modifier = Modifier.padding(8.dp)
-                   ) {
-for(a in 1..100) {
-    DropdownMenuItem(onClick = {
-        settings = settings.copy(repeatinterval =a.toLong())
-        expandedNumbers = false
-        saveEnabled = true
-    }) {
-        Text(a.toString())
-    }
-}
-                   }
-               }
-                   // DropdownMenu
-                   Box(modifier = Modifier.padding(start = 8.dp)) {
-                       Row(verticalAlignment = Alignment.CenterVertically) {
-
-                           Text(
-                               text = when (settings.timeUnit) {
-                                   TimeUnit.DAYS -> "Days"
-                                   TimeUnit.HOURS -> "Hours"
-                                   TimeUnit.MINUTES -> "Minutes"
-                                   else -> ""
-                               },
-                               modifier = Modifier.clickable { expanded = true }
-                           )
-                           Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "")
-                           DropdownMenu(
-                               expanded = expanded,
-                               onDismissRequest = { expanded = false },
-                               modifier = Modifier.padding(8.dp)
-                           ) {
-                               DropdownMenuItem(onClick = {
-                                   settings = settings.copy(timeUnit = TimeUnit.MINUTES)
-                                   expanded = false
-                                   saveEnabled = true
-                               }) {
-                                   Text("Minutes")
-                               }
-
-                               DropdownMenuItem(onClick = {
-                                   settings = settings.copy(timeUnit = TimeUnit.HOURS)
-                                   expanded = false
-                                   saveEnabled = true
-                               }) {
-                                   Text("Hours")
-                               }
-
-                               DropdownMenuItem(onClick = {
-                                   settings = settings.copy(timeUnit = TimeUnit.DAYS)
-                                   expanded = false
-                                   saveEnabled = true
-                               }) {
-                                   Text("Days")
-                               }
-                           }
-                       }
-                   }}
-           }
-
-            Button(enabled=saveEnabled,onClick = {
-
-viewModel.uploadSettings(context = context, settings = settings)
-         if(settings.reminderMode) {
-             Toast.makeText(context,"Your reminder was set successfully", Toast.LENGTH_LONG).show()
-             val reminderWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(
-                 settings.repeatinterval, settings.timeUnit
-             )
-                 //.setConstraints(constraints)
-                 .setInitialDelay(settings.repeatinterval, settings.timeUnit)
-                 .build()
-
-             val workManager = WorkManager.getInstance(context)
-             workManager.enqueueUniquePeriodicWork(
-                 "reminderWork",
-                 ExistingPeriodicWorkPolicy.REPLACE,
-                 reminderWorkRequest
-             )
 
 
-         }else{
-             WorkManager.getInstance(context).cancelAllWork()
-             Toast.makeText(context,"Your reminder has been closed successfully",Toast.LENGTH_LONG).show()
 
-         }  }) {
-                Text(text = "Save your changes!")
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.background(
+                    Color.Black.copy(alpha = 0.3f), RoundedCornerShape(10.dp)
+                ).animateContentSize(animationSpec =tween(500))
+            ) {
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(text = "Set up your WordCard reminder.", fontWeight = FontWeight.Bold)
+                    Switch(checked = settings.reminderMode, onCheckedChange = {
+                        settings = settings.copy(reminderMode = it)
+                        saveEnabled = true
+
+                    })
+                }
+                if (settings.reminderMode) {
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "Your reminder will be shown every  ")
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = settings.repeatinterval.toString(),
+                                modifier = Modifier.clickable { expandedNumbers = true }
+                            )
+                            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "")
+                            DropdownMenu(
+                                scrollState = ScrollState(settings.repeatinterval.toInt()),
+                                expanded = expandedNumbers,
+                                onDismissRequest = { expandedNumbers = false },
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                for (a in 1..100) {
+                                    DropdownMenuItem(onClick = {
+                                        settings = settings.copy(repeatinterval = a.toLong())
+                                        expandedNumbers = false
+                                        saveEnabled = true
+                                    }) {
+                                        Text(a.toString())
+                                    }
+                                }
+                            }
+                        }
+                        // DropdownMenu
+                        Box(modifier = Modifier.padding(start = 8.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                Text(
+                                    text = when (settings.timeUnit) {
+                                        TimeUnit.DAYS -> "Days"
+                                        TimeUnit.HOURS -> "Hours"
+                                        TimeUnit.MINUTES -> "Minutes"
+                                        else -> ""
+                                    },
+                                    modifier = Modifier.clickable { expanded = true }
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = ""
+                                )
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false },
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    DropdownMenuItem(onClick = {
+                                        settings = settings.copy(timeUnit = TimeUnit.MINUTES)
+                                        expanded = false
+                                        saveEnabled = true
+                                    }) {
+                                        Text("Minutes")
+                                    }
+
+                                    DropdownMenuItem(onClick = {
+                                        settings = settings.copy(timeUnit = TimeUnit.HOURS)
+                                        expanded = false
+                                        saveEnabled = true
+                                    }) {
+                                        Text("Hours")
+                                    }
+
+                                    DropdownMenuItem(onClick = {
+                                        settings = settings.copy(timeUnit = TimeUnit.DAYS)
+                                        expanded = false
+                                        saveEnabled = true
+                                    }) {
+                                        Text("Days")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Button(enabled = saveEnabled, onClick = {
+
+                    viewModel.uploadSettings(context = context, settings = settings)
+                    if (settings.reminderMode) {
+                        Toast.makeText(
+                            context,
+                            "Your reminder was set successfully",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        val reminderWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(
+                            settings.repeatinterval, settings.timeUnit
+                        )
+                            //.setConstraints(constraints)
+                            .setInitialDelay(settings.repeatinterval, settings.timeUnit)
+                            .build()
+
+                        val workManager = WorkManager.getInstance(context)
+                        workManager.enqueueUniquePeriodicWork(
+                            "reminderWork",
+                            ExistingPeriodicWorkPolicy.REPLACE,
+                            reminderWorkRequest
+                        )
+
+
+                    } else {
+                        WorkManager.getInstance(context).cancelAllWork()
+                        Toast.makeText(
+                            context,
+                            "Your reminder has been closed successfully",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+                }) {
+                    Text(text = "Save your changes!")
+                }
             }
-       }
 
 
 
@@ -389,7 +450,8 @@ viewModel.uploadSettings(context = context, settings = settings)
 fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
     val navController = rememberNavController()
 
-    Scaffold(
+    Scaffold(backgroundColor = Color.Transparent,
+
         bottomBar = {
             BottomNavigation(modifier = Modifier.clip(RoundedCornerShape(20.dp)),backgroundColor = hilalsColor, elevation = 20.dp) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()

@@ -40,7 +40,7 @@ object NotificationUtils {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
-        notificationManager.notify(card.documentId.hashCode(), notification)
+        notificationManager.notify(1, notification)
     }
 }
 

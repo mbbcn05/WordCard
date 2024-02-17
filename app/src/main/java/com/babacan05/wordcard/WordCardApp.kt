@@ -6,11 +6,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -136,10 +143,16 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
 
             composable("app_screen"){
                 val viewModel =  it.sharedViewModel<CardViewModel>(navController)
+Box(modifier = Modifier.fillMaxSize()){
+    //Image(alignment = Alignment.TopCenter, painter = painterResource(id = R.drawable.hd), contentDescription ="" , modifier = Modifier.fillMaxSize())
 
-               BottomNav(viewModel){navController.navigate("study_screen"){
-                   popUpTo("app_screen") {
-                       inclusive = false
+    Image( painter = painterResource(id = R.drawable.water), contentDescription ="" , modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
+    //Image(alignment = Alignment.BottomCenter, painter = painterResource(id = R.drawable.hd), contentDescription ="" , modifier = Modifier.fillMaxSize())
+               BottomNav(viewModel) {
+                   navController.navigate("study_screen") {
+                       popUpTo("app_screen") {
+                           inclusive = false
+                       }
                    }
                }
                }
@@ -149,12 +162,16 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
             }
             composable("study_screen"){
                 val viewModel =  it.sharedViewModel<CardViewModel>(navController)
-                StudyScreen(viewModel) { navController.navigate("word_card"){
+              Box(modifier = Modifier.fillMaxSize()){
+                  Image( painter = painterResource(id = R.drawable.water), contentDescription ="" , modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
+
+                  StudyScreen(viewModel) { navController.navigate("word_card"){
                     popUpTo("word_card") {
                         inclusive = false
                     }
                 } }
-            }
+            }}
+
             }
 
         }

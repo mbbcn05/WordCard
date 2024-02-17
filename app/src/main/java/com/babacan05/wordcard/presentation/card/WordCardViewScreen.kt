@@ -3,6 +3,10 @@ package com.babacan05.wordcard.presentation.card
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -78,14 +82,23 @@ fun WordCardViewScreen(
     deleteClick: () -> Job,
 
 
-) {
-val context= LocalContext.current
+    ) {
+    val context= LocalContext.current
     var learned by rememberSaveable {
         mutableStateOf(wordCard.learning != "false")
     }
-var color by rememberSaveable {
-    mutableStateOf(wordCard.color)
-}
+    var targentColorInt by remember {
+        mutableStateOf(wordCard.color)
+    }
+    val colorInt= remember { Animatable(targentColorInt.toFloat(),) }
+
+    LaunchedEffect(key1 = targentColorInt){
+        colorInt.animateTo(targentColorInt.toFloat(),animationSpec = tween(durationMillis = 300,
+            easing = FastOutSlowInEasing))
+    }
+
+
+
     var showPicker by rememberSaveable {
         mutableStateOf(false)
     }
@@ -95,7 +108,7 @@ var color by rememberSaveable {
             .padding(16.dp),
         elevation = 8.dp,
         shape = RoundedCornerShape(16.dp),
-        backgroundColor =Color(color).copy(alpha = 0.4F)
+        backgroundColor =Color(colorInt.value.toInt()).copy(alpha = 0.6F)
     ) {
         Column(
             modifier = Modifier
@@ -103,25 +116,28 @@ var color by rememberSaveable {
                 .padding(16.dp),
             verticalArrangement = Arrangement.Top
         ) {
-           Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()){
+            Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()){
 
 
-               IconButton(modifier = Modifier.align(Alignment.Top), onClick = { onFinish() }) {
-                   Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-               }
-              Image(modifier = Modifier
-                  .size(30.dp)
-                  .align(Alignment.CenterVertically)
-                  .clickable { showPicker = true },painter = painterResource(id = R.drawable.picker), contentDescription = "")
+                IconButton(modifier = Modifier.align(Alignment.Top), onClick = { onFinish() }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+                Image(modifier = Modifier
+                    .size(30.dp)
+                    .align(Alignment.CenterVertically)
+                    .clickable { showPicker = true },painter = painterResource(id = R.drawable.picker), contentDescription = "")
 
-             if(showPicker) {
-                 CustomColorPicker(initialColor = wordCard.color.toInt(), onColorSelected = {
-                     color = it.toLong()
-                 }) {
-                showPicker=false
-                 }
-             }
-           }
+                if(showPicker) {
+                    CustomColorPicker(initialColor = wordCard.color.toInt(), onColorSelected = {
+                        targentColorInt = it.toLong()
+                    }, onDismiss =  {
+                        showPicker=false
+                    }){
+                        viewModel.updateofflineWordCard(wordCard.copy(color= targentColorInt))
+                        showPicker=false
+                    }
+                }
+            }
 
             Box(
                 modifier = Modifier
@@ -138,21 +154,25 @@ var color by rememberSaveable {
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                   if(wordCard.imageUrl.isNotEmpty()){
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(wordCard.imageUrl)
-                            .crossfade(true)
-                            .build(), placeholder = painterResource(R.drawable.rounded_globe_24),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .size(200.dp)
-                    )}
+                    if(wordCard.imageUrl.isNotEmpty()){
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(wordCard.imageUrl)
+                                .crossfade(true)
+                                .build(), placeholder = painterResource(R.drawable.rounded_globe_24),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(200.dp)
+                        )}
                     Box(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(15.dp)),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .background(
+                                Color.LightGray.copy(alpha = 0.6f),
+                                RoundedCornerShape(15.dp)
+                            ),
 
                         ) {
                         Text(
@@ -167,35 +187,47 @@ var color by rememberSaveable {
                     }
                     Spacer(modifier = Modifier.height(18.dp))
                     Box(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(5.dp)),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .background(
+                                Color.LightGray.copy(alpha = 0.6f),
+                                RoundedCornerShape(5.dp)
+                            ),
 
                         ){
-                    Text(
-                        modifier = Modifier.background(Color.Green.copy(alpha = 0.1f)),
-                        text = wordCard.translate,
-                        fontSize = 18.sp,
-                        color = Color.White,
-                        maxLines = 1
-                    )
-                }
+                        Text(
+                            modifier = Modifier.background(Color.Green.copy(alpha = 0.1f)),
+                            text = wordCard.translate.uppercase(),
+                            fontSize = 18.sp,
+                            color = Color.White,
+                            maxLines = 1
+                        )
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                     Box(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(5.dp)),
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .background(
+                                Color.LightGray.copy(alpha = 0.6f),
+                                RoundedCornerShape(5.dp)
+                            ),
 
                         ){
-                    Text(
-                        text = wordCard.synonyms,
-                        fontSize = 16.sp,
-                        color = Color.White,
-                        maxLines = 1
-                    )}
+                        Text(
+                            text = wordCard.synonyms,
+                            fontSize = 16.sp,
+                            color = Color.White,
+                            maxLines = 1
+                        )}
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(3.dp)),
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .background(
+                                Color.LightGray.copy(alpha = 0.6f),
+                                RoundedCornerShape(3.dp)
+                            ),
 
                         ) {
                         Text(
@@ -231,8 +263,12 @@ var color by rememberSaveable {
 
                         Spacer(modifier = Modifier.width(16.dp))
                         Box(
-                            modifier = Modifier.align(Alignment.CenterVertically)
-                                .background(Color.LightGray.copy(alpha = 0.6f), RoundedCornerShape(5.dp)),
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .background(
+                                    Color.LightGray.copy(alpha = 0.6f),
+                                    RoundedCornerShape(5.dp)
+                                ),
 
                             ) {
                             Column(
@@ -285,7 +321,7 @@ var color by rememberSaveable {
                         }
 
                     }
-                    }
+                }
 
 
 
@@ -294,5 +330,6 @@ var color by rememberSaveable {
             }
         }
 
-        }}
+    }}
+
 
