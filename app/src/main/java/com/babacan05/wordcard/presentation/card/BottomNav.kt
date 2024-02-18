@@ -193,7 +193,7 @@ fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,stat
     val wordList = viewModel.wordcardSearchstateFlow.collectAsStateWithLifecycle().value
     var searchQuery by remember { mutableStateOf("") }
     LaunchedEffect(key1 = searchQuery) {
-    viewModel.searchWordCardOnline(searchQuery)
+   if(searchQuery.length>2) {viewModel.searchWordCardOnline(searchQuery)}
 }
     val customTextFieldColors = TextFieldDefaults.textFieldColors(
         textColor = Color.Black, // Kullanıcının girdiği metnin rengi
