@@ -464,9 +464,9 @@ print("CALLBACK BAŞARILI$fieldValue")
 
         val deletingwordList=wordList.map { it }.toList()
         for (wordcard in deletingwordList){
-            var imageUrl= ""
+            var imageUrl=wordcard.imageUrl
 
-            if(wordcard.imageUrl.isNotEmpty()){
+            if(wordcard.imageUrl.startsWith("file")){
                 imageUrl= readByteArrayFromFileUri(wordcard.imageUrl)?.let { uploadImageToCloud(it) }?:wordcard.imageUrl
                 delay(2000)
             }

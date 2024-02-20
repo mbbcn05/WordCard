@@ -13,5 +13,5 @@ data class WordCard(
     val addingMode:String="",
     val updateMode:Boolean=true,
     val learning:String="false",
-    val color: Long = 0xFF295D6B
+    val color: Long = -16711936
     )

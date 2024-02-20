@@ -135,7 +135,7 @@ fun WordCardItem(wordCard: WordCard, modifier: Modifier = Modifier, onClick: () 
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = modifier.background(Color(wordCard.color).copy(alpha = 0.6f))
+            modifier = modifier.background(Color(wordCard.color.toInt()).copy(alpha = 0.6f))
         ) {
             if (isFlipped) {
                 Text(

@@ -2,14 +2,8 @@ package com.babacan05.wordcard.presentation.card
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.TweenSpec
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -24,15 +18,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Button
@@ -87,9 +81,9 @@ import androidx.work.WorkManager
 import com.babacan05.wordcard.R
 import com.babacan05.wordcard.common.ReminderWorker
 import com.babacan05.wordcard.model.WordCard
+import com.babacan05.wordcard.presentation.Admob.AdMobBanner
 import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.launch
-import org.intellij.lang.annotations.JdkConstants.VerticalScrollBarPolicy
 import java.util.concurrent.TimeUnit
 
 
@@ -103,7 +97,7 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector?, val lab
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
+fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyGridState) {
     val context: Context = LocalContext.current
 
     //var checkingmigratewords by remember { mutableIntStateOf(0 ) }
@@ -131,7 +125,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
         contentAlignment = Alignment.Center
     ) {
 
-val scrollState=ScrollState(1)
+
         Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
@@ -160,15 +154,26 @@ val scrollState=ScrollState(1)
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
             )
-            LazyVerticalGrid(userScrollEnabled =true , columns = GridCells.Fixed(2)) {
-                items(filteredWordList) { word ->
-                    WordCardItem(wordCard = word) {
-                        viewModel.updateViewingWordCard(word)
-                        navController.navigate("WordCardViewScreen")
+            val wordsPerAdBlock = 4 // Her reklam bloğundaki kelime sayısı
+            val adsPerBlock = 2 // Her reklam bloğundaki reklam sayısı
+
+            LazyVerticalGrid(state=state,userScrollEnabled = true, columns = GridCells.Fixed(2)) {
+                items(filteredWordList.size + filteredWordList.size / wordsPerAdBlock * adsPerBlock) { index ->
+                    val positionInBlock = index % (wordsPerAdBlock + adsPerBlock)
+                    if (positionInBlock < wordsPerAdBlock) {
+                        // Kelime bloğu
+                        val wordIndex = index - index / (wordsPerAdBlock + adsPerBlock) * adsPerBlock
+                        val word = filteredWordList[wordIndex]
+                        WordCardItem(wordCard = word) {
+                            viewModel.updateViewingWordCard(word)
+                            navController.navigate("WordCardViewScreen")
+                        }
+                    } else {
+                        // Reklam bloğu
+                        AdMobBanner()
                     }
                 }
             }
-
 
         }
         FloatingActionButton(backgroundColor = Color.Black, contentColor = Color.White, elevation =FloatingActionButtonDefaults.elevation(),
@@ -245,14 +250,21 @@ fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,stat
             }
 
         }
+        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+
+            AdMobBanner()
+        }
     }
 }
 
 @Composable
 fun StudyCardsScreen(navigateStudy:()->Unit) {
     Box(
-        modifier = Modifier.fillMaxSize().padding(15.dp
-        ),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                15.dp
+            ),
         contentAlignment = Alignment.Center
     )
 
@@ -293,14 +305,19 @@ fun SettingsScreen(viewModel:CardViewModel) {
     ) {
       Icon(modifier = Modifier.align(Alignment.TopCenter), painter = painterResource(id = R.drawable.notify), contentDescription ="" )
 
+Box(modifier =Modifier.align(Alignment.BottomCenter)){
 
+    AdMobBanner()
+}
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.background(
-                    Color.Black.copy(alpha = 0.3f), RoundedCornerShape(10.dp)
-                ).animateContentSize(animationSpec =tween(500))
+                modifier = Modifier
+                    .background(
+                        Color.Black.copy(alpha = 0.3f), RoundedCornerShape(10.dp)
+                    )
+                    .animateContentSize(animationSpec = tween(500))
             ) {
 
                 Row(
@@ -538,7 +555,7 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
             }
         }
     ) { innerPadding ->
-        val lazyListState = rememberLazyListState()
+        val lazyListState = rememberLazyGridState()
         val lazyListSearchState = rememberLazyListState()
         NavHost(
             navController = navController,

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,15 +47,13 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.babacan05.wordcard.R
-import com.babacan05.wordcard.common.getImageUrl
+import com.babacan05.wordcard.common.getImagewithSerper
 import com.babacan05.wordcard.common.getMySynonym
 import com.babacan05.wordcard.common.getTranslate
 import com.babacan05.wordcard.common.giveSentence
@@ -88,15 +87,12 @@ var generateCard by rememberSaveable {
          viewModel.viewModelScope.launch {
              translate = getTranslate("tr",word)
              sampleSentence = giveSentence(text=word)
-            // synonyms = getMySynonym(word)
              synonyms= getMySynonym(word)
-             imageUrl= getImageUrl(word)
-loading=false
+            imageUrl = getImagewithSerper(word)
+             loading=false
 
          }
-
-
-        }
+     }
     }
 
 
@@ -144,20 +140,28 @@ loading=false
                      Icon(imageVector = Icons.Default.Delete, contentDescription = "",tint = LocalContentColor.current)}
                  }
              }
-                val context = LocalContext.current
 
-               AnimatedVisibility(visible = generate){
-                Button(onClick = { if(isInternetAvailable(context)){
-                    generateCard++
-                    generate=false
-                    loading=true
-                }else{
-                    Toast.makeText(context,"Please check your connection!",Toast.LENGTH_SHORT).show()
-                } }) {
-                    Text(text = "Generate WordCard")
+                Row {
+                    ImagePicker (LocalContext.current){
 
-                }}
+                        imageUrl=it.toString()
+                        print("Hedef kısım çalıştı")
 
+                    }
+                    val context = LocalContext.current
+Spacer(modifier = Modifier.width(12.dp))
+                    AnimatedVisibility(visible = generate){
+                        Button( onClick = { if(isInternetAvailable(context)){
+                            generateCard++
+                            generate=false
+                            loading=true
+                        }else{
+                            Toast.makeText(context,"Please check your connection!",Toast.LENGTH_SHORT).show()
+                        } }) {
+                            Text(text = "Auto-Generate")
+
+                        }}
+                }
 
 
 
@@ -216,12 +220,8 @@ loading=false
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                ImagePicker (LocalContext.current){
 
-                    imageUrl=it.toString()
-                    print("Hedef kısım çalıştı")
 
-                }
                OutlinedButton(enabled = !word.isEmpty()&&!translate.isEmpty(), modifier=Modifier.fillMaxWidth(),
                     onClick = {
 

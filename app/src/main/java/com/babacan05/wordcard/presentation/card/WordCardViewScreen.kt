@@ -2,6 +2,7 @@ package com.babacan05.wordcard.presentation.card
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -202,6 +203,7 @@ fun WordCardViewScreen(
                             color = Color.White,
                             maxLines = 1
                         )
+
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Box(

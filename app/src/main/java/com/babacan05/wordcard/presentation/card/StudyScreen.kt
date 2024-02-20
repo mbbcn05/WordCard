@@ -55,13 +55,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.babacan05.wordcard.R
 import com.babacan05.wordcard.model.WordCard
+import com.babacan05.wordcard.presentation.Admob.AdMobBanner
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun StudyScreen(viewModel: CardViewModel, function: () -> Unit) {
+fun StudyScreen(viewModel: CardViewModel, showInterstitialAdCallback: () -> Unit ,function: () -> Unit) {
 
     val wordCards = viewModel.offlineWordCards.collectAsState().value.toMutableList().shuffled().filter { it.learning=="false" }
     var viewingcardNumber by rememberSaveable {
@@ -88,7 +89,7 @@ val context= LocalContext.current
 
 
         if(wordCards.size>0){
-        Question(modifier=Modifier.fillMaxSize(),wordCard = wordCards[viewingcardNumber],viewModel) {
+        Question(modifier=Modifier.fillMaxSize(),wordCard = wordCards[viewingcardNumber], showInterstitialAdCallback = showInterstitialAdCallback,viewModel) {
 
             if (viewingcardNumber < wordCards.size - 1) {
                 viewingcardNumber++
@@ -116,6 +117,7 @@ else{
 fun Question(
     modifier: Modifier,
     wordCard: WordCard,
+    showInterstitialAdCallback: () -> Unit,
     viewModel: CardViewModel,
 
     nextquestion: () -> Unit
@@ -147,137 +149,182 @@ var trueAnswer by rememberSaveable {
         mutableStateOf(60000L)
     }
 
-    Box(modifier=modifier.padding(top = 110.dp,end=0.dp,start=0.dp,bottom=0.dp)){
+    Box(modifier=modifier.padding(top = 110.dp,end=0.dp,start=0.dp,bottom=0.dp)) {
 
-       if (!trueAnswer&&!gameOver){
-    Timer(isTimerRunning =!gameOver,currentTime = currentTime,modifier= Modifier
-        .align(Alignment.TopCenter)
-        .size(150.dp)) {
-        gameOver = true
-    }
-    }
-           if(gameOver){
-             Image(painter = painterResource(id = R.drawable.pngegg), contentDescription ="",modifier= Modifier
-                 .align(Alignment.TopCenter ))
-           }
-if(!gameOver&&trueAnswer){
-    Image(painter = painterResource(id = R.drawable.checktrue), contentDescription ="" ,modifier= Modifier
-        .align(Alignment.TopCenter ).size(100.dp))
-}
-
-
-
-
-
-
-Box(modifier=Modifier.align(Alignment.Center)) {
-    Column(
-        verticalArrangement = Arrangement.SpaceAround,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = wordCard.word.uppercase()+" ?",
-            fontSize = if (wordCard.word.length < 5) 100.sp else if(wordCard.word.length < 7)80.sp else if(wordCard.word.length < 11)40.sp else 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-
-        )
-        val customTextFieldColors = TextFieldDefaults.textFieldColors(
-            textColor = Color.Black, // Kullanıcının girdiği metnin rengi
-            backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
-            cursorColor = Color.Black, // Metin imlecinin rengi
-            focusedIndicatorColor = Color.Transparent, // Odaklanıldığında gösterilen gösterge rengi
-            unfocusedIndicatorColor = Color.Transparent, // Odak kaldırıldığında gösterilen gösterge rengi
-            disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
-        )
-
-        Spacer(modifier = Modifier.size(30.dp))
-        OutlinedTextField( colors=customTextFieldColors, enabled=!trueAnswer&&!gameOver,isError =!trueAnswer,label={ Text(color = Color.Blue, text = "Give your answer")},value = userAnswer, onValueChange = {
-           if(userAnswer!=wordCard.translate&&!gameOver){ userAnswer = it}
-            trueAnswer = if (it == wordCard.translate) {
-                true
-            } else {
-                false
+        if (!trueAnswer && !gameOver) {
+            Timer(
+                isTimerRunning = !gameOver, currentTime = currentTime, modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .size(150.dp)
+            ) {
+                gameOver = true
             }
-
-        })
-        Spacer(modifier = Modifier.size(10.dp))
-        Row {
-
-
-        Button(enabled=!trueAnswer,onClick = {
-            userAnswer=wordCard.translate
-            gameOver=true
-            trueAnswer=false
-
-             }) {
-            Text(
-                text =
-                "Show the Ansver")
         }
-            Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                Checkbox(checked = learned, onCheckedChange ={learned=!learned
+        if (gameOver) {
+            Image(
+                painter = painterResource(id = R.drawable.pngegg),
+                contentDescription = "",
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+            )
+        }
+        if (!gameOver && trueAnswer) {
+            Image(
+                painter = painterResource(id = R.drawable.checktrue),
+                contentDescription = "",
+                modifier = Modifier
+                    .align(Alignment.TopCenter).size(100.dp)
+            )
+        }
 
-                    viewModel.updateofflineWordCard(wordCard.copy(learning = if(it){"true"}else{"false"}))
-                    if(it) {
 
-                        Toast.makeText(
-                            context,
-                            "The WordCard is marked as learned",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }else{
-                        Toast.makeText(
-                            context,
-                            "The WordCard is marked as being studied",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                })
-                Text(fontSize = 10.sp,text = "Learned")
-            }
 
-            Button(onClick = {
-            nextquestion()
 
-            userAnswer = ""
-            trueAnswer = false
-                gameOver=false
-                currentTime=60000L
-        }, enabled = trueAnswer||gameOver) {
-            Text(text = "Next Question")
-        }}
-        if(gameOver){
-            Spacer(modifier=Modifier.size(40.dp))
-            Box(){
 
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(wordCard.imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.rounded_globe_24),
-                    contentDescription = "",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(100.dp)
+
+        Box(modifier = Modifier.align(Alignment.Center)) {
+            Column(
+                verticalArrangement = Arrangement.SpaceAround,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = wordCard.word.uppercase() + " ?",
+                    fontSize = if (wordCard.word.length < 5) 100.sp else if (wordCard.word.length < 7) 80.sp else if (wordCard.word.length < 11) 40.sp else 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+
+                    )
+                val customTextFieldColors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black, // Kullanıcının girdiği metnin rengi
+                    backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
+                    cursorColor = Color.Black, // Metin imlecinin rengi
+                    focusedIndicatorColor = Color.Transparent, // Odaklanıldığında gösterilen gösterge rengi
+                    unfocusedIndicatorColor = Color.Transparent, // Odak kaldırıldığında gösterilen gösterge rengi
+                    disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
                 )
-                if(wordCard.synonyms.isNotEmpty()){
-                    Text(modifier=Modifier.align(Alignment.BottomCenter),text =wordCard.synonyms )}
-                if(wordCard.sentence.isNotEmpty()){
-                    Text(modifier=Modifier.align(Alignment.Center),text = wordCard.sentence)
+
+                Spacer(modifier = Modifier.size(30.dp))
+                OutlinedTextField(
+                    colors = customTextFieldColors,
+                    enabled = !trueAnswer && !gameOver,
+                    isError = !trueAnswer,
+                    label = { Text(color = Color.Blue, text = "Give your answer") },
+                    value = userAnswer,
+                    onValueChange = {
+                        if (userAnswer != wordCard.translate && !gameOver) {
+                            userAnswer = it
+                        }
+                        trueAnswer = if (it == wordCard.translate) {
+                            true
+                        } else {
+                            false
+                        }
+
+                    })
+                Spacer(modifier = Modifier.size(10.dp))
+                Row {
+
+
+                    Button(enabled = !trueAnswer, onClick = {
+                        userAnswer = wordCard.translate
+                        gameOver = true
+                        trueAnswer = false
+                        showInterstitialAdCallback()
+
+                    }) {
+                        Text(
+                            text =
+                            "Show the Ansver"
+                        )
+                    }
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Checkbox(checked = learned, onCheckedChange = {
+                            learned = !learned
+
+                            viewModel.updateofflineWordCard(
+                                wordCard.copy(
+                                    learning = if (it) {
+                                        "true"
+                                    } else {
+                                        "false"
+                                    }
+                                )
+                            )
+                            if (it) {
+
+                                Toast.makeText(
+                                    context,
+                                    "The WordCard is marked as learned",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "The WordCard is marked as being studied",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        })
+                        Text(fontSize = 10.sp, text = "Learned")
+                    }
+
+                    Button(onClick = {
+                        nextquestion()
+
+                        userAnswer = ""
+                        trueAnswer = false
+                        gameOver = false
+                        currentTime = 60000L
+                    }, enabled = trueAnswer || gameOver) {
+                        Text(text = "Next Question")
+                    }
+                }
+                if (gameOver) {
+                    Spacer(modifier = Modifier.size(40.dp))
+                    Box() {
+
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(wordCard.imageUrl)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.rounded_globe_24),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(100.dp)
+                        )
+                        if (wordCard.synonyms.isNotEmpty()) {
+                            Text(
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                                text = wordCard.synonyms
+                            )
+                        }
+                        if (wordCard.sentence.isNotEmpty()) {
+                            Text(
+                                modifier = Modifier.align(Alignment.Center),
+                                text = wordCard.sentence
+                            )
+                        }
+                    }
+
                 }
             }
 
         }
-    }
+        if (!gameOver && !trueAnswer) {
+            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
 
-}
+                AdMobBanner()
+            }
+        }
     }
-
 }
 
 @Composable

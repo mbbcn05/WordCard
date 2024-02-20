@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -45,7 +44,7 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient){
+fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient, showInterstitialAdCallback: () -> Unit){
 
     val lifecycleOwner = LocalContext.current as? ComponentActivity
 
@@ -165,7 +164,7 @@ Box(modifier = Modifier.fillMaxSize()){
               Box(modifier = Modifier.fillMaxSize()){
                   Image( painter = painterResource(id = R.drawable.water), contentDescription ="" , modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
 
-                  StudyScreen(viewModel) { navController.navigate("word_card"){
+                  StudyScreen(viewModel,showInterstitialAdCallback){ navController.navigate("word_card"){
                     popUpTo("word_card") {
                         inclusive = false
                     }
