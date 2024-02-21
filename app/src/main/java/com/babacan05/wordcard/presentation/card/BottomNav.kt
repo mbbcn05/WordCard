@@ -2,18 +2,23 @@ package com.babacan05.wordcard.presentation.card
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -60,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,6 +73,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -85,7 +92,7 @@ import com.babacan05.wordcard.presentation.Admob.AdMobBanner
 import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-
+import kotlin.math.roundToInt
 
 
 sealed class BottomNavScreens(val route: String, val icon: ImageVector?, val label: String) {
@@ -95,73 +102,86 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector?, val lab
     object Settings : BottomNavScreens("settings", Icons.Default.Settings, "Settings")
 }
 
-@SuppressLint("StateFlowValueCalledInComposition")
+
+@SuppressLint("RememberReturnType")
 @Composable
-fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyGridState) {
+fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state: LazyGridState) {
     val context: Context = LocalContext.current
 
-    //var checkingmigratewords by remember { mutableIntStateOf(0 ) }
     var searchQuery by remember { mutableStateOf("") }
-    val offlinelist=viewModel.offlineWordCards.collectAsStateWithLifecycle().value.sortedBy { it.word }
-
+    val offlinelist = viewModel.offlineWordCards.collectAsStateWithLifecycle().value.sortedBy { it.word }
 
     val filteredWordList by remember(offlinelist, searchQuery) {
         derivedStateOf {
-           viewModel.filterWordList(offlinelist, searchQuery)
-       }
+            viewModel.filterWordList(offlinelist, searchQuery)
+        }
     }
 
-    LaunchedEffect(key1 =true){
+    var textFieldVisible by remember { mutableStateOf(true) }
 
-        viewModel.migrateCardsIntoOnline(context,offlinelist.filter { it.updateMode })
-
-
+    LaunchedEffect(key1 = true) {
+        viewModel.migrateCardsIntoOnline(context, offlinelist.filter { it.updateMode })
     }
-
-
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize() ,
         contentAlignment = Alignment.Center
     ) {
-
-
-        Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally,
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
+
         ) {
-            // Search TextField
+            val offset = remember { derivedStateOf { state.firstVisibleItemScrollOffset } }
+            var previousOffset by remember { mutableStateOf(0) }
+
+            LaunchedEffect(offset.value) {
+                textFieldVisible = offset.value <= previousOffset
+                previousOffset = offset.value
+            }
+
             val customTextFieldColors = TextFieldDefaults.textFieldColors(
-                textColor = Color.Black, // Kullanıcının girdiği metnin rengi
-                backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
-                cursorColor = Color.Black, // Metin imlecinin rengi
-                focusedIndicatorColor = Color.Blue, // Odaklanıldığında gösterilen gösterge rengi
-                unfocusedIndicatorColor = Color.Black, // Odak kaldırıldığında gösterilen gösterge rengi
-                disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
+                textColor = Color.Black,
+                backgroundColor = Color.Transparent,
+                cursorColor = Color.Black,
+                focusedIndicatorColor = Color.Blue,
+                unfocusedIndicatorColor = Color.Black,
+                disabledIndicatorColor = Color.Transparent
             )
-            OutlinedTextField(colors = customTextFieldColors, keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
-                keyboardType= KeyboardType.Text, imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onNext = null),
-                value = searchQuery,
-                onValueChange = {
-                    searchQuery = it
+           AnimatedVisibility(visible = textFieldVisible) {
+                OutlinedTextField(
+                    colors = customTextFieldColors,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(onNext = null),
+                    value = searchQuery,
+                    onValueChange = {
+                        searchQuery = it
+                    },
+                    singleLine = true,
+                    label = { Text("Search in Your Words") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-                },
-                singleLine = true,
-                label = { Text("Search in Your Words") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
-            val wordsPerAdBlock = 4 // Her reklam bloğundaki kelime sayısı
-            val adsPerBlock = 2 // Her reklam bloğundaki reklam sayısı
+            val wordsPerAdBlock = 4
+            val adsPerBlock = 2
 
-            LazyVerticalGrid(state=state,userScrollEnabled = true, columns = GridCells.Fixed(2)) {
+            LazyVerticalGrid(
+                state = state,
+
+                userScrollEnabled = true,
+                columns = GridCells.Fixed(2)
+            ) {
                 items(filteredWordList.size + filteredWordList.size / wordsPerAdBlock * adsPerBlock) { index ->
                     val positionInBlock = index % (wordsPerAdBlock + adsPerBlock)
                     if (positionInBlock < wordsPerAdBlock) {
-                        // Kelime bloğu
                         val wordIndex = index - index / (wordsPerAdBlock + adsPerBlock) * adsPerBlock
                         val word = filteredWordList[wordIndex]
                         WordCardItem(wordCard = word) {
@@ -169,19 +189,19 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
                             navController.navigate("WordCardViewScreen")
                         }
                     } else {
-                        // Reklam bloğu
                         AdMobBanner()
                     }
                 }
             }
-
         }
-        FloatingActionButton(backgroundColor = Color.Black, contentColor = Color.White, elevation =FloatingActionButtonDefaults.elevation(),
+
+        FloatingActionButton(
+            backgroundColor = Color.Black,
+            contentColor = Color.White,
+            elevation = FloatingActionButtonDefaults.elevation(),
             onClick = {
-              // checkingmigratewords++
                 viewModel.updateViewingWordCard(WordCard())
                 navController.navigate("NewCardScreen")
-
             },
             modifier = Modifier
                 .padding(16.dp)
@@ -191,7 +211,6 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController,state:
         }
     }
 }
-
 @Composable
 fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
 
@@ -470,6 +489,8 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
     Scaffold(backgroundColor = Color.Transparent,
 
         bottomBar = {
+
+
             BottomNavigation(modifier = Modifier.clip(RoundedCornerShape(20.dp)),backgroundColor = hilalsColor, elevation = 20.dp) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute =
@@ -477,6 +498,9 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
                 var clictedItem by rememberSaveable {
                     mutableIntStateOf(1)
                 }
+
+
+
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
 
@@ -602,8 +626,8 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
 
         }
     }
+
+
 }
-
-
 
 

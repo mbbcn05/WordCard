@@ -6,17 +6,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.core.graphics.rotationMatrix
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +43,7 @@ import com.babacan05.wordcard.presentation.profile.ProfileScreen
 import com.babacan05.wordcard.presentation.sign_in.GoogleAuthUiClient
 import com.babacan05.wordcard.presentation.sign_in.SignInScreen
 import com.babacan05.wordcard.presentation.sign_in.SignInViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -61,7 +71,7 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient, showInterstitialAdCallbac
 
                 LaunchedEffect(key1 = Unit) {
                     if (googleAuthUiClient.getSignedInUser() != null) {
-                        navController.navigate("profile")
+                        navController.navigate("word_card")
                     }
                 }
 
@@ -87,7 +97,7 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient, showInterstitialAdCallbac
                             Toast.LENGTH_LONG
                         ).show()
 
-                        navController.navigate("profile")
+                        navController.navigate("word_card")
                         viewModel.resetState()
                     }
                 }
@@ -142,20 +152,29 @@ fun WorCardApp(googleAuthUiClient: GoogleAuthUiClient, showInterstitialAdCallbac
 
             composable("app_screen"){
                 val viewModel =  it.sharedViewModel<CardViewModel>(navController)
-Box(modifier = Modifier.fillMaxSize()){
+Box(modifier = Modifier.fillMaxSize().navigationBarsPadding()) {
     //Image(alignment = Alignment.TopCenter, painter = painterResource(id = R.drawable.hd), contentDescription ="" , modifier = Modifier.fillMaxSize())
 
-    Image( painter = painterResource(id = R.drawable.water), contentDescription ="" , modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
+    Image(
+        painter = painterResource(id = R.drawable.water),
+        contentDescription = "",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.FillBounds
+    )
     //Image(alignment = Alignment.BottomCenter, painter = painterResource(id = R.drawable.hd), contentDescription ="" , modifier = Modifier.fillMaxSize())
-               BottomNav(viewModel) {
-                   navController.navigate("study_screen") {
-                       popUpTo("app_screen") {
-                           inclusive = false
-                       }
-                   }
-               }
-               }
 
+
+
+
+        BottomNav(viewModel) {
+            navController.navigate("study_screen") {
+                popUpTo("app_screen") {
+                    inclusive = false
+                }
+            }
+        }
+
+}
 
 
             }
