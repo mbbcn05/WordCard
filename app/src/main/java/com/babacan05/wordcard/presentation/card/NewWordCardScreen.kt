@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
@@ -62,8 +63,30 @@ import com.babacan05.wordcard.common.giveSentence
 import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
 import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-
+enum class TranslationOptions(val abbreviation: String, val nameInLanguage: String) {
+    ENGLISH("en", "English"),
+    CHINESE("zh", "Chinese-中文"),
+    SPANISH("es", "Spanish-Español"),
+    ARABIC("ar", "Arabic-العربية"),
+    HINDI("hi", "Hindi-हिन्दी"),
+    FRENCH("fr", "French-Français"),
+    URDU("ur", "Urdu-اردو"),
+    PORTUGUESE("pt", "Portuguese-Português"),
+    BENGALI("bn", "Bengali-বাংলা"),
+    RUSSIAN("ru", "Russian-Русский"),
+    JAPANESE("ja", "Japanese-日本語"),
+    PERSIAN("fa", "Persian-فارسی"),
+    GERMAN("de", "German-Deutsch"),
+    KOREAN("ko", "Korean-한국어"),
+    VIETNAMESE("vi", "Vietnamese-Tiếng Việt"),
+    ITALIAN("it", "Italian-Italiano"),
+    TURKISH("tr", "Turkish-Türkçe"),
+    PORTUGUESE_BRAZIL("pt-BR", "Portuguese (Brazil)-Português (Brasil)"),
+    INDONESIAN("id", "Indonesian-Bahasa Indonesia"),
+    KAZAKH("kk", "Kazakh-Қазақ тілі")
+}
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: WordCard= WordCard()) {
@@ -73,6 +96,12 @@ fun NewWordCardScreen(onFinish: () -> Unit,viewModel: CardViewModel,wordCard: Wo
     var synonyms by rememberSaveable { mutableStateOf(wordCard.synonyms) }
     var imageUrl by rememberSaveable {
         mutableStateOf(wordCard.imageUrl)
+    }
+    var expandedMenu by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var toLanguageSelected by rememberSaveable {
+        mutableStateOf(true)
     }
 
 var generateCard by rememberSaveable {
@@ -87,12 +116,19 @@ var generateCard by rememberSaveable {
     LaunchedEffect(key1 = generateCard){
      if(generateCard>0){
          viewModel.viewModelScope.launch {
-            translate = getTranslate("tr",word)
-             sampleSentence = giveSentence(text=word)
-             synonyms= getMySynonym(word)
-            imageUrl = getImagewithSerper(word)
-//translate= getTranslator("tr","very")
-             loading=false
+             val translateDeferred = async { getTranslate("tr", word) }
+             val sampleSentenceDeferred = async { giveSentence(text = word) }
+             val synonymsDeferred = async { getMySynonym(word) }
+             val imageUrlDeferred = async { getImagewithSerper(word) }
+
+             // Tüm işlemler paralel olarak çalışacak
+             translate = translateDeferred.await()
+            //sampleSentence = sampleSentenceDeferred.await()
+            // synonyms = synonymsDeferred.await()
+          //   imageUrl = imageUrlDeferred.await()
+
+             // Tüm async çağrılar tamamlandıktan sonra loading'i false olarak ayarla
+             loading = false
 
          }
      }
@@ -161,9 +197,12 @@ Spacer(modifier = Modifier.width(12.dp))
                         }else{
                             Toast.makeText(context,"Please check your connection!",Toast.LENGTH_SHORT).show()
                         } }) {
-                            Text(text = "Auto-Generate")
+                            Text(text = "Auto-Generate ")
 
                         }}
+                    DropdownMenu(expanded = toLanguageSelected, onDismissRequest = { /*TODO*/ }) {
+                        
+                    }
                 }
 
 

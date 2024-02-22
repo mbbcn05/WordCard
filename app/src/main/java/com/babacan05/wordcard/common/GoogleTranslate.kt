@@ -30,6 +30,8 @@ interface TranslateService {
 val retrofitGoogleTranlate = Retrofit.Builder()
     .baseUrl("https://google-translate113.p.rapidapi.com/")
     .addConverterFactory(GsonConverterFactory.create())
+    .client(okHttpClient)
+
     .build()
 
 val serviceGoogleTranslate = retrofitGoogleTranlate.create(TranslateService::class.java)

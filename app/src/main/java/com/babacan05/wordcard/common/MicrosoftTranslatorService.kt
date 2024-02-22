@@ -20,8 +20,8 @@ interface MicrosoftTranslatorService {
     ): List<TranslationResult>
 }
 val okHttpClient = OkHttpClient.Builder()
-    .readTimeout(10, TimeUnit.SECONDS) // Okuma zaman aşımı: 30 saniye
-    .writeTimeout(10, TimeUnit.SECONDS) // Yazma zaman aşımı: 30 saniye
+    .readTimeout(6, TimeUnit.SECONDS) // Okuma zaman aşımı: 30 saniye
+    .writeTimeout(6, TimeUnit.SECONDS) // Yazma zaman aşımı: 30 saniye
     .build()
 
 val retrofit = Retrofit.Builder()

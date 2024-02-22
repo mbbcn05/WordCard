@@ -20,6 +20,7 @@ data class SynonymResponse(
 
 val retrofitSynonym = Retrofit.Builder()
     .baseUrl("https://english-synonyms.p.rapidapi.com/")
+    .client(okHttpClient)
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 
@@ -33,11 +34,22 @@ suspend fun getMySynonym(text:String) :String{
 
     try {
         val response = service.getSynonyms(apiKey, apiHost, text)
-        var synonys= ""
-        response.synonyms.forEachIndexed() {index,asd-> if(index<5){synonys= "$synonys$asd,"
-        } }
-        return synonys
-    } catch (e: Exception) {
+        val synonyms = response.synonyms
+
+        val sb = StringBuilder()
+
+        for ((index, word) in synonyms.withIndex()) {
+            sb.append(word)
+            if (index < 4 && index < synonyms.size - 1) {
+                sb.append(", ")
+            }
+            if (index == 4) {
+                break
+            }
+        }
+
+        return sb.toString()
+    }  catch (e: Exception) {
         e.printStackTrace()
         return ""
     }

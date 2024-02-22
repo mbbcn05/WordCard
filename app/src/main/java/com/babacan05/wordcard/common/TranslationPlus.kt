@@ -29,6 +29,7 @@ interface TranslatePlusService {
 val retrofitPlus = Retrofit.Builder()
     .baseUrl("https://translate-plus.p.rapidapi.com/")
     .addConverterFactory(GsonConverterFactory.create())
+    .client(okHttpClient)
     .build()
 
 val servicePlus = retrofitPlus.create(TranslatePlusService::class.java)
