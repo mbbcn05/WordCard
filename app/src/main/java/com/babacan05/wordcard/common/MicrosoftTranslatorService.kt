@@ -30,7 +30,7 @@ val retrofit = Retrofit.Builder()
     .client(okHttpClient)
     .build()
 
-suspend fun getTranslate( toLanguage: String = "en", text: String = "save"): String{
+suspend fun getTranslate( toLanguage: String = "en", text: String ): String{
     val service = retrofit.create(MicrosoftTranslatorService::class.java)
 
 // API isteğini gönderme ve yanıtı alıp işleme
@@ -49,10 +49,12 @@ suspend fun getTranslate( toLanguage: String = "en", text: String = "save"): Str
                 translationa=translation.text
             }
         }
-        return translationa
+       if(translationa==""){throw Exception()}
+        else{return translationa}
+
     } catch (e: Exception) {
         e.printStackTrace()
-        return  ""
+        return  getGoogleTranslate(toLanguage,text)
     }
     }
 

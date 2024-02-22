@@ -53,9 +53,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.babacan05.wordcard.common.getGoogleTranslate
 import com.babacan05.wordcard.common.getImagewithSerper
 import com.babacan05.wordcard.common.getMySynonym
 import com.babacan05.wordcard.common.getTranslate
+import com.babacan05.wordcard.common.getTranslator
 import com.babacan05.wordcard.common.giveSentence
 import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
@@ -85,10 +87,11 @@ var generateCard by rememberSaveable {
     LaunchedEffect(key1 = generateCard){
      if(generateCard>0){
          viewModel.viewModelScope.launch {
-             translate = getTranslate("tr",word)
+            translate = getTranslate("tr",word)
              sampleSentence = giveSentence(text=word)
              synonyms= getMySynonym(word)
             imageUrl = getImagewithSerper(word)
+//translate= getTranslator("tr","very")
              loading=false
 
          }

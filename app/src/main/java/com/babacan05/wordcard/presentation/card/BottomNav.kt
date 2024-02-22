@@ -55,6 +55,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -175,11 +176,16 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
 
             LazyVerticalGrid(
                 state = state,
-
+modifier = Modifier.animateContentSize(),
                 userScrollEnabled = true,
                 columns = GridCells.Fixed(2)
             ) {
-                items(filteredWordList.size + filteredWordList.size / wordsPerAdBlock * adsPerBlock) { index ->
+                items(count=filteredWordList.size + filteredWordList.size / wordsPerAdBlock * adsPerBlock,key={index ->
+                    if (index < filteredWordList.size) {
+                        filteredWordList[index].documentId // WordCardItem için belge kimliği
+                    } else {
+                        "ad_$index" // AdMobBanner için benzersiz bir belge kimliği
+                    }}) { index ->
                     val positionInBlock = index % (wordsPerAdBlock + adsPerBlock)
                     if (positionInBlock < wordsPerAdBlock) {
                         val wordIndex = index - index / (wordsPerAdBlock + adsPerBlock) * adsPerBlock
@@ -189,6 +195,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
                             navController.navigate("WordCardViewScreen")
                         }
                     } else {
+
                         AdMobBanner()
                     }
                 }
