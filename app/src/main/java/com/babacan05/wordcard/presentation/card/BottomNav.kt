@@ -133,7 +133,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 0.dp)
 
         ) {
             val offset = remember { derivedStateOf { state.firstVisibleItemScrollOffset } }
