@@ -157,8 +157,26 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 0.dp)
 
-        ) {  val  stater= rememberScrollState()
-
+        ) {
+            AnimatedVisibility( modifier = Modifier.padding(horizontal = 30.dp, vertical = 0.dp),visible = textFieldVisible,) {
+                OutlinedTextField(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = customTextFieldColors,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(onNext = null),
+                    value = searchQuery,
+                    onValueChange = {
+                        searchQuery = it
+                    },
+                    singleLine = true,
+                    label = { Text("Search in your wordcards!") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             val wordsPerAdBlock = 4
             val adsPerBlock = 2
 
@@ -168,7 +186,6 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
                 userScrollEnabled = true,
                 columns = GridCells.Fixed(2)
             ) {
-
                 items(count=filteredWordList.size + filteredWordList.size / wordsPerAdBlock * adsPerBlock,key={index ->
                     if (index < filteredWordList.size) {
                         filteredWordList[index].documentId // WordCardItem için belge kimliği
@@ -190,26 +207,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
                 }
             }
         }
-        AnimatedVisibility(modifier = Modifier
-            .padding(horizontal = 20.dp, vertical = 0.dp)
-            .align(Alignment.TopCenter),visible = textFieldVisible) {
-            OutlinedTextField(
-                colors = customTextFieldColors,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(onNext = null),
-                value = searchQuery,
-                onValueChange = {
-                    searchQuery = it
-                },
-                singleLine = true,
-                label = { Text("Search in your wordcards!") },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+
 
         FloatingActionButton(
             backgroundColor = Color.Black,
@@ -227,7 +225,6 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
         }
     }
 }
-
 @Composable
 fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
 
