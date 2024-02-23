@@ -166,7 +166,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
                         searchQuery = it
                     },
                     singleLine = true,
-                    label = { Text("Search in Your Words") },
+                    label = { Text(offset.value.toString()) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
