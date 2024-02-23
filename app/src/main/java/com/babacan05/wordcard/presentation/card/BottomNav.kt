@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +30,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -63,8 +65,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -128,6 +132,24 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
         modifier = Modifier.fillMaxSize() ,
         contentAlignment = Alignment.Center
     ) {
+
+        val offset = remember { derivedStateOf { state.firstVisibleItemScrollOffset } }
+        var previousOffset by remember { mutableStateOf(0) }
+
+        LaunchedEffect(offset.value) {
+            textFieldVisible = offset.value <= previousOffset
+            previousOffset = offset.value
+        }
+
+        val customTextFieldColors = TextFieldDefaults.textFieldColors(
+            textColor = Color.Black,
+            backgroundColor = Color.Transparent,
+            cursorColor = Color.Black,
+            focusedIndicatorColor = Color.Blue,
+            unfocusedIndicatorColor = Color.Black,
+            disabledIndicatorColor = Color.Transparent
+        )
+
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -135,51 +157,18 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 0.dp)
 
-        ) {
-            val offset = remember { derivedStateOf { state.firstVisibleItemScrollOffset } }
-            var previousOffset by remember { mutableStateOf(0) }
-
-            LaunchedEffect(offset.value) {
-                textFieldVisible = offset.value <= previousOffset
-                previousOffset = offset.value
-            }
-
-            val customTextFieldColors = TextFieldDefaults.textFieldColors(
-                textColor = Color.Black,
-                backgroundColor = Color.Transparent,
-                cursorColor = Color.Black,
-                focusedIndicatorColor = Color.Blue,
-                unfocusedIndicatorColor = Color.Black,
-                disabledIndicatorColor = Color.Transparent
-            )
-           AnimatedVisibility(visible = textFieldVisible) {
-                OutlinedTextField(
-                    colors = customTextFieldColors,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Search
-                    ),
-                    keyboardActions = KeyboardActions(onNext = null),
-                    value = searchQuery,
-                    onValueChange = {
-                        searchQuery = it
-                    },
-                    singleLine = true,
-                    label = { Text(offset.value.toString()) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+        ) {  val  stater= rememberScrollState()
 
             val wordsPerAdBlock = 4
             val adsPerBlock = 2
 
             LazyVerticalGrid(
                 state = state,
-modifier = Modifier.animateContentSize(),
+                modifier = Modifier.animateContentSize(),
                 userScrollEnabled = true,
                 columns = GridCells.Fixed(2)
             ) {
+
                 items(count=filteredWordList.size + filteredWordList.size / wordsPerAdBlock * adsPerBlock,key={index ->
                     if (index < filteredWordList.size) {
                         filteredWordList[index].documentId // WordCardItem için belge kimliği
@@ -201,6 +190,26 @@ modifier = Modifier.animateContentSize(),
                 }
             }
         }
+        AnimatedVisibility(modifier = Modifier
+            .padding(horizontal = 20.dp, vertical = 0.dp)
+            .align(Alignment.TopCenter),visible = textFieldVisible) {
+            OutlinedTextField(
+                colors = customTextFieldColors,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(onNext = null),
+                value = searchQuery,
+                onValueChange = {
+                    searchQuery = it
+                },
+                singleLine = true,
+                label = { Text("Search in your wordcards!") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         FloatingActionButton(
             backgroundColor = Color.Black,
@@ -218,6 +227,7 @@ modifier = Modifier.animateContentSize(),
         }
     }
 }
+
 @Composable
 fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,state:LazyListState) {
 
