@@ -33,4 +33,4 @@ fun  ImagePicker(context: Context, enabled: Boolean, onUriSaved: (Uri) -> Unit) 
         Text("Select an image")
     }
 }
-//Orjinal master güncellendi şimdi
+//Orjinal master güncellendi şimdilik
