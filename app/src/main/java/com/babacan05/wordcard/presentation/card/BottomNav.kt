@@ -135,10 +135,15 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
 
         val offset = remember { derivedStateOf { state.firstVisibleItemScrollOffset } }
         var previousOffset by remember { mutableStateOf(0) }
-
+var mydp by remember{
+    mutableStateOf(64.dp)
+}
         LaunchedEffect(offset.value) {
             textFieldVisible = offset.value <= previousOffset
             previousOffset = offset.value
+            if(state.firstVisibleItemIndex==0){
+                mydp=0.dp
+            }
         }
 
         val customTextFieldColors = TextFieldDefaults.textFieldColors(
@@ -163,7 +168,7 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
 
             LazyVerticalGrid(
                 state = state,
-                modifier = Modifier.animateContentSize(),
+                modifier = Modifier.animateContentSize().padding(start = 0.dp,top=(mydp),bottom=0.dp,end=0.dp),
                 userScrollEnabled = true,
                 columns = GridCells.Fixed(2)
             ) {
