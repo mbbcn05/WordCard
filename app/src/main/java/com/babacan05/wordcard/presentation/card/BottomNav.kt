@@ -145,7 +145,7 @@ var mydp by remember{
 
         val customTextFieldColors = TextFieldDefaults.textFieldColors(
             textColor = Color.Black,
-            backgroundColor = Color.Transparent,
+            backgroundColor = Color.White.copy(alpha = 0.7f),
             cursorColor = Color.Black,
             focusedIndicatorColor = Color.Blue,
             unfocusedIndicatorColor = Color.Black,
