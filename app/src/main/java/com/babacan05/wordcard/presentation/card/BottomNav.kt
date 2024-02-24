@@ -150,33 +150,14 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
             disabledIndicatorColor = Color.Transparent
         )
 
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
+
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 0.dp)
 
         ) {
-            AnimatedVisibility( modifier = Modifier.padding(horizontal = 30.dp, vertical = 0.dp),visible = textFieldVisible,) {
-                OutlinedTextField(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = customTextFieldColors,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Search
-                    ),
-                    keyboardActions = KeyboardActions(onNext = null),
-                    value = searchQuery,
-                    onValueChange = {
-                        searchQuery = it
-                    },
-                    singleLine = true,
-                    label = { Text("Search in your wordcards!") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+
             val wordsPerAdBlock = 4
             val adsPerBlock = 2
 
@@ -205,6 +186,25 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
                         AdMobBanner()
                     }
                 }
+            }
+            AnimatedVisibility( modifier = Modifier.padding(horizontal = 30.dp, vertical = 0.dp),visible = textFieldVisible,) {
+                OutlinedTextField(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = customTextFieldColors,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(onNext = null),
+                    value = searchQuery,
+                    onValueChange = {
+                        searchQuery = it
+                    },
+                    singleLine = true,
+                    label = { Text("Search in your wordcards!") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
 
