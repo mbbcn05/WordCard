@@ -179,7 +179,7 @@ fun WordCardItem(wordCard: WordCard, modifier: Modifier = Modifier, onClick: () 
                         .background(Color.Black.copy(alpha = 0.2f))
                         .clip(
                             RoundedCornerShape(15.dp)
-                        )//Metnin arkasındaki siyah arka planı kaplayacak şekilde ayarlayın
+                        )
                 )
             }
         }}

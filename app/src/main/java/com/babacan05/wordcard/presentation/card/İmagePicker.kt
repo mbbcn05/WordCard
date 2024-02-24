@@ -7,18 +7,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import com.babacan05.wordcard.common.compressAndSaveImage
-import com.babacan05.wordcard.common.compressImageToByteArray
-import com.babacan05.wordcard.common.isInternetAvailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
 @Composable
-fun  ImagePicker(context: Context,onUriSaved: (Uri)-> Unit) {
+fun  ImagePicker(context: Context, enabled: Boolean, onUriSaved: (Uri) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
@@ -32,8 +29,7 @@ fun  ImagePicker(context: Context,onUriSaved: (Uri)-> Unit) {
 }
         }
     }
-    // Resim seçme butonu
-    OutlinedButton(onClick = { getContent.launch("image/*") }) {
+    OutlinedButton(enabled=enabled,onClick = { getContent.launch("image/*") }) {
         Text("Select an image")
     }
 }

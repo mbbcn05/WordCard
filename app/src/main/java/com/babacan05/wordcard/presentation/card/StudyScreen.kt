@@ -197,12 +197,12 @@ var trueAnswer by rememberSaveable {
 
                     )
                 val customTextFieldColors = TextFieldDefaults.textFieldColors(
-                    textColor = Color.Black, // Kullanıcının girdiği metnin rengi
-                    backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
-                    cursorColor = Color.Black, // Metin imlecinin rengi
-                    focusedIndicatorColor = Color.Transparent, // Odaklanıldığında gösterilen gösterge rengi
-                    unfocusedIndicatorColor = Color.Transparent, // Odak kaldırıldığında gösterilen gösterge rengi
-                    disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
+                    textColor = Color.Black,
+                    backgroundColor = Color.Transparent,
+                    cursorColor = Color.Black,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
                 )
 
                 Spacer(modifier = Modifier.size(30.dp))
@@ -334,13 +334,13 @@ fun Timer(
     strokeWidth: Dp = 5.dp,
     currentTime: Long,
     isTimerRunning: Boolean,
-    onTimerFinished: () -> Unit // Geri sayım sıfıra ulaştığında çalışacak fonksiyon
+    onTimerFinished: () -> Unit
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
     var value by remember { mutableStateOf(initialValue) }
     var time by remember { mutableStateOf(currentTime) }
     LaunchedEffect(currentTime, isTimerRunning) {
-       // var time = currentTime
+
         var running = isTimerRunning
         while (time > 0 && running) {
             delay(50L)
@@ -348,7 +348,7 @@ fun Timer(
             value = time / 60000f // Saniye cinsinden
         }
         if (time <= 0) {
-            onTimerFinished() // Geri sayım sıfıra ulaştığında belirtilen fonksiyonu çağır
+            onTimerFinished()
         }
     }
 

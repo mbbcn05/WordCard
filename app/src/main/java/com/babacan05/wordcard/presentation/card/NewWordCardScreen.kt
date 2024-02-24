@@ -11,7 +11,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,27 +59,22 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.babacan05.wordcard.R
-import com.babacan05.wordcard.common.getGoogleTranslate
 import com.babacan05.wordcard.common.getImagewithSerper
 import com.babacan05.wordcard.common.getMySynonym
 import com.babacan05.wordcard.common.getTranslate
-import com.babacan05.wordcard.common.getTranslator
 import com.babacan05.wordcard.common.giveSentence
 import com.babacan05.wordcard.common.isInternetAvailable
 import com.babacan05.wordcard.model.WordCard
 import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 enum class TranslationOptions(val abbreviation: String, val nameInLanguage: String,val flagId: Int) {
     NOLANGUAGE("??","Language to translate to",R.drawable.word),
@@ -144,10 +138,10 @@ var generateCard by rememberSaveable {
         if(generate&&selectedLanguage==TranslationOptions.NOLANGUAGE) {
 
             brightness.animateTo(
-                targetValue = 0.5f, // Parlaklık değerini hedef değere animasyonlu olarak ayarlayın
+                targetValue = 0.5f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 300), // Animasyonun süresini ve türünü ayarlayın
-                    repeatMode = RepeatMode.Reverse // Animasyonun nasıl tekrarlanacağını ayarlayın
+                    animation = tween(durationMillis = 300),
+                    repeatMode = RepeatMode.Reverse
                 )
             )
         }else{brightness.stop()
@@ -161,13 +155,13 @@ var generateCard by rememberSaveable {
              val synonymsDeferred = async { getMySynonym(word) }
              val imageUrlDeferred = async { getImagewithSerper(word) }
 
-             // Tüm işlemler paralel olarak çalışacak
-             translate = translateDeferred.await()
-            //sampleSentence = sampleSentenceDeferred.await()
-            // synonyms = synonymsDeferred.await()
-          //   imageUrl = imageUrlDeferred.await()
 
-             // Tüm async çağrılar tamamlandıktan sonra loading'i false olarak ayarla
+             translate = translateDeferred.await()
+            sampleSentence = sampleSentenceDeferred.await()
+             synonyms = synonymsDeferred.await()
+             imageUrl = imageUrlDeferred.await()
+
+
              loading = false
 
          }
@@ -196,8 +190,8 @@ var generateCard by rememberSaveable {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            LoadingAnimation(isLoading = loading)
-            if(!loading){Column(
+
+        Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -207,21 +201,21 @@ var generateCard by rememberSaveable {
                         .data(imageUrl)
                         .crossfade(true)
                         .build(),
-                   // placeholder = painterResource(R.drawable.rounded_globe_24),
+
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(100.dp)
                         .clip(RoundedCornerShape(16.dp))
                 )
-                 if(imageUrl.isNotEmpty()){IconButton(onClick ={
+                 if(imageUrl.isNotEmpty()&&!loading){IconButton(onClick ={
                      imageUrl=""}){
                      Icon(imageVector = Icons.Default.Delete, contentDescription = "",tint = LocalContentColor.current)}
                  }
              }
 
                 Row {
-                    ImagePicker (LocalContext.current){
+                    ImagePicker (LocalContext.current,enabled=!loading){
 
                         imageUrl=it.toString()
 
@@ -240,7 +234,6 @@ Spacer(modifier = Modifier.width(12.dp))
 
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement =Arrangement.Center,modifier=Modifier.clickable { expandedMenu=true }.graphicsLayer {
-                                // Parlaklık efektini uygulayın
                                 alpha = brightness.value
                             }.background(Color.Cyan, RoundedCornerShape(10.dp)
                             )) {
@@ -279,7 +272,7 @@ Spacer(modifier = Modifier.width(12.dp))
 
 
                     Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(trailingIcon = {                             Image(modifier = Modifier.clickable {                                 Toast.makeText(
+                OutlinedTextField(enabled = !loading, trailingIcon = {                             Image(modifier = Modifier.clickable {                                 Toast.makeText(
                     context,"When auto generating, the target language will be automatically detected!",Toast.LENGTH_LONG).show()
                 }, painter = painterResource(id =TranslationOptions.NOLANGUAGE.flagId), contentDescription ="" )
                 },keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
@@ -297,7 +290,7 @@ Spacer(modifier = Modifier.width(12.dp))
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(trailingIcon = {      if(selectedLanguage!=TranslationOptions.NOLANGUAGE){
+                OutlinedTextField(enabled = !loading, trailingIcon = {      if(selectedLanguage!=TranslationOptions.NOLANGUAGE){
                     Image(modifier = Modifier.clickable {
                         Toast.makeText(
                             context,
@@ -319,7 +312,7 @@ Spacer(modifier = Modifier.width(12.dp))
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
+                OutlinedTextField(enabled = !loading, keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
                     keyboardType=KeyboardType.Text),
                     keyboardActions = KeyboardActions(onNext = null),
                     value = sampleSentence,
@@ -332,7 +325,7 @@ Spacer(modifier = Modifier.width(12.dp))
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
+                OutlinedTextField(enabled = !loading, keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words,
                     keyboardType=KeyboardType.Text),
                     keyboardActions = KeyboardActions(onNext = null),
                     value = synonyms,
@@ -380,7 +373,7 @@ Spacer(modifier = Modifier.width(12.dp))
                     Text("Save WordCard", color = hilalsColor)
                 }
             }
-        }
+            LoadingAnimation(isLoading = loading)
     }}
 }
 

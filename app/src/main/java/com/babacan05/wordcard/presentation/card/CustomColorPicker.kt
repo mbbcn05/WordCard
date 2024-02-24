@@ -89,10 +89,10 @@ fun CustomColorPicker(
                     if (selectedColorIndex != -1) {
                         val centerX = (selectedColorIndex + 0.5f) * cellSize
                         val centerY = size.height / 2
-                        val radius = cellSize / 2 * 0.8f // Çemberi biraz daha küçültmek için
+                        val radius = cellSize / 2 * 0.8f
                         drawCircle(
                             color = Color.White,
-                            radius = radius + 4.dp.toPx(), // Biraz daha büyük bir daire çizin
+                            radius = radius + 4.dp.toPx(),
                             center = Offset(centerX, centerY),
                             style = Fill
                         )

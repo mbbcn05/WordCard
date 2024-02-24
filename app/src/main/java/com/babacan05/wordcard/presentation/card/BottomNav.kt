@@ -173,9 +173,9 @@ var mydp by remember{
             ) {
                 items(count=filteredWordList.size + filteredWordList.size / wordsPerAdBlock * adsPerBlock,key={index ->
                     if (index < filteredWordList.size) {
-                        filteredWordList[index].documentId // WordCardItem için belge kimliği
+                        filteredWordList[index].documentId
                     } else {
-                        "ad_$index" // AdMobBanner için benzersiz bir belge kimliği
+                        "ad_$index"
                     }}) { index ->
                     val positionInBlock = index % (wordsPerAdBlock + adsPerBlock)
                     if (positionInBlock < wordsPerAdBlock) {
@@ -238,12 +238,12 @@ fun SearchScreen(viewModel: CardViewModel, navController: NavHostController,stat
    if(searchQuery.length>2) {viewModel.searchWordCardOnline(searchQuery)}
 }
     val customTextFieldColors = TextFieldDefaults.textFieldColors(
-        textColor = Color.Black, // Kullanıcının girdiği metnin rengi
-        backgroundColor = Color.Transparent, // Arka plan rengi, eğer gerekiyorsa
-        cursorColor = Color.Black, // Metin imlecinin rengi
-        focusedIndicatorColor = Color.Blue, // Odaklanıldığında gösterilen gösterge rengi
-        unfocusedIndicatorColor = Color.Black, // Odak kaldırıldığında gösterilen gösterge rengi
-        disabledIndicatorColor = Color.Transparent // Devre dışı bırakıldığında gösterilen gösterge rengi
+        textColor = Color.Black,
+        backgroundColor = Color.Transparent,
+        cursorColor = Color.Black,
+        focusedIndicatorColor = Color.Blue,
+        unfocusedIndicatorColor = Color.Black,
+        disabledIndicatorColor = Color.Transparent
     )
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -463,7 +463,7 @@ Box(modifier =Modifier.align(Alignment.BottomCenter)){
                         val reminderWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(
                             settings.repeatinterval, settings.timeUnit
                         )
-                            //.setConstraints(constraints)
+
                             .setInitialDelay(settings.repeatinterval, settings.timeUnit)
                             .build()
 
