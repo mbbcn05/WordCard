@@ -4,33 +4,26 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,9 +48,9 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,9 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -78,7 +69,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -97,7 +87,6 @@ import com.babacan05.wordcard.presentation.Admob.AdMobBanner
 import com.plcoding.composegooglesignincleanarchitecture.ui.theme.hilalsColor
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-import kotlin.math.roundToInt
 
 
 sealed class BottomNavScreens(val route: String, val icon: ImageVector?, val label: String) {
@@ -110,7 +99,13 @@ sealed class BottomNavScreens(val route: String, val icon: ImageVector?, val lab
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state: LazyGridState) {
+fun HomeScreen(
+    viewModel: CardViewModel,
+    navController: NavHostController,
+    state: LazyGridState,
+    bottomBarVisibility: MutableState<Boolean>
+
+) {
     val context: Context = LocalContext.current
 
     var searchQuery by remember { mutableStateOf("") }
@@ -136,14 +131,16 @@ fun HomeScreen(viewModel: CardViewModel, navController: NavHostController, state
         val offset = remember { derivedStateOf { state.firstVisibleItemScrollOffset } }
         var previousOffset by remember { mutableStateOf(0) }
 var mydp by remember{
-    mutableStateOf(64.dp)
+    mutableStateOf(64)
 }
         LaunchedEffect(offset.value) {
             textFieldVisible = offset.value <= previousOffset
+            bottomBarVisibility.value= offset.value <= previousOffset
             previousOffset = offset.value
             if(state.firstVisibleItemIndex==0){
-                mydp=0.dp
+                if(64-offset.value*3/2>=0) {mydp=64-offset.value*3/2} else{mydp=0}
             }
+
         }
 
         val customTextFieldColors = TextFieldDefaults.textFieldColors(
@@ -168,7 +165,9 @@ var mydp by remember{
 
             LazyVerticalGrid(
                 state = state,
-                modifier = Modifier.animateContentSize().padding(start = 0.dp,top=(mydp),bottom=0.dp,end=0.dp),
+                modifier = Modifier
+                    .animateContentSize()
+                    .padding(start = 0.dp, top = (mydp.dp), bottom = 0.dp, end = 0.dp),
                 userScrollEnabled = true,
                 columns = GridCells.Fixed(2)
             ) {
@@ -504,98 +503,112 @@ Box(modifier =Modifier.align(Alignment.BottomCenter)){
 @Composable
 fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
     val navController = rememberNavController()
-
-    Scaffold(backgroundColor = Color.Transparent,
+  val bottomBarVisibility = remember {
+      mutableStateOf(true)
+  }
+    Scaffold(modifier=Modifier,backgroundColor = Color.Transparent,
 
         bottomBar = {
 
+AnimatedVisibility(visible = bottomBarVisibility.value) {
+    BottomNavigation(modifier = Modifier
+        .clip(RoundedCornerShape(20.dp))
+        ,backgroundColor = hilalsColor, elevation = 20.dp) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute =
+            navBackStackEntry?.arguments?.getString("androidx.navigation.dynamicfeatures.FragmentNavigator.Destination")
+        var clictedItem by rememberSaveable {
+            mutableIntStateOf(1)
+        }
 
-            BottomNavigation(modifier = Modifier.clip(RoundedCornerShape(20.dp)),backgroundColor = hilalsColor, elevation = 20.dp) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute =
-                    navBackStackEntry?.arguments?.getString("androidx.navigation.dynamicfeatures.FragmentNavigator.Destination")
-                var clictedItem by rememberSaveable {
-                    mutableIntStateOf(1)
+
+
+        BottomNavigationItem(
+            icon = { Icon(Icons.Default.Home, contentDescription = null) },
+
+            selected = currentRoute == BottomNavScreens.Home.route,
+            label = { if(clictedItem==1){
+                Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                Text(text = "  ") }},
+            onClick = {
+                clictedItem=1
+                navController.navigate(BottomNavScreens.Home.route) {
+                    launchSingleTop = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    restoreState = true
                 }
-
-
-
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-
-                    selected = currentRoute == BottomNavScreens.Home.route,
-                    label = { if(clictedItem==1){
-                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
-                        Text(text = "  ") }},
-                    onClick = {
-                        clictedItem=1
-                        navController.navigate(BottomNavScreens.Home.route) {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            restoreState = true
-                        }
-                    }
-                )
-
-                // Dashboard Tab
-                BottomNavigationItem(
-                    icon = {   Icon(painterResource(R.drawable.rounded_globe_24), contentDescription = null)},
-                    label = { if(clictedItem==2){
-                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
-                        Text(text = "  ") }},
-                    selected = currentRoute == BottomNavScreens.Search.route,
-                    onClick = {
-                        clictedItem=2
-                        navController.navigate(BottomNavScreens.Search.route) {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            restoreState = true
-                        }
-                    }
-                )
-
-                // Notifications Tab
-                BottomNavigationItem(
-                    icon = { Icon(painterResource(R.drawable.reading), contentDescription = null) },
-                    label = { if(clictedItem==3){
-                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
-                        Text(text = "  ") }},
-                    selected = currentRoute == BottomNavScreens.Study.route,
-                    onClick = {
-                        clictedItem=3
-                        navController.navigate(BottomNavScreens.Study.route) {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            restoreState = true
-                        }
-                    }
-                )
-
-                // Settings Tab
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    label = { if(clictedItem==4){
-                        Text(overflow = TextOverflow.Visible, text = "____________")}else{
-                        Text(text = "  ") }},
-                    selected = currentRoute == BottomNavScreens.Settings.route,
-                    onClick = {
-                        clictedItem=4
-                        navController.navigate(BottomNavScreens.Settings.route) {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            restoreState = true
-                        }
-                    }
-                )
             }
+        )
+
+        // Dashboard Tab
+        BottomNavigationItem(
+            icon = {   Icon(painterResource(R.drawable.rounded_globe_24), contentDescription = null)},
+            label = { if(clictedItem==2){
+                Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                Text(text = "  ") }},
+            selected = currentRoute == BottomNavScreens.Search.route,
+            onClick = {
+
+
+                clictedItem=2
+                navController.navigate(BottomNavScreens.Search.route) {
+                    launchSingleTop = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    restoreState = true
+                }
+                bottomBarVisibility.value=true
+
+            }
+        )
+
+        // Notifications Tab
+        BottomNavigationItem(
+            icon = { Icon(painterResource(R.drawable.reading), contentDescription = null) },
+            label = { if(clictedItem==3){
+                Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                Text(text = "  ") }},
+            selected = currentRoute == BottomNavScreens.Study.route,
+            onClick = {
+                clictedItem=3
+                navController.navigate(BottomNavScreens.Study.route) {
+                    launchSingleTop = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    restoreState = true
+                }
+                bottomBarVisibility.value=true
+
+            }
+        )
+
+        // Settings Tab
+        BottomNavigationItem(
+            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+            label = { if(clictedItem==4){
+                Text(overflow = TextOverflow.Visible, text = "____________")}else{
+                Text(text = "  ") }},
+            selected = currentRoute == BottomNavScreens.Settings.route,
+            onClick = {
+                clictedItem=4
+                navController.navigate(BottomNavScreens.Settings.route) {
+                    launchSingleTop = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    restoreState = true
+                }
+                bottomBarVisibility.value=true
+
+            }
+        )
+    }
+}
+
         }
     ) { innerPadding ->
         val lazyListState = rememberLazyGridState()
@@ -610,7 +623,7 @@ fun BottomNav(viewModel: CardViewModel,navigateStudy:()->Unit) {
 
             composable(BottomNavScreens.Home.route) {
 
-                HomeScreen(viewModel, navController, lazyListState)
+                HomeScreen(viewModel, navController, lazyListState,bottomBarVisibility)
             }
             composable(BottomNavScreens.Search.route) { SearchScreen(viewModel,navController,lazyListSearchState) }
             composable(BottomNavScreens.Study.route) { StudyCardsScreen(navigateStudy) }
