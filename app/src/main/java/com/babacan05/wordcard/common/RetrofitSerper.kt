@@ -68,7 +68,7 @@ try {
         engine = "google"
     )
 
-    val response = serviceSerper.searchImages("9cc7f54627e93b1f06771d5fd03ec3d7a9f99c0a", searchParameters)
+    val response = serviceSerper.searchImages("**********", searchParameters)
     return response.images[0].imageUrl
 
 }catch (e:Exception){
