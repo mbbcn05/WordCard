@@ -35,7 +35,7 @@ suspend fun getTranslate( toLanguage: String = "en", text: String ): String{
 
 // API isteğini gönderme ve yanıtı alıp işleme
     val requestBody = listOf(TranslationRequestBody(text))
-    val apiKey = "0803bfd4b7msh9e9438d7bc813b1p13727fjsn6cc6106ad8b8"
+    val apiKey = "*******************************"
 
 
     // Yanıtı işleme
