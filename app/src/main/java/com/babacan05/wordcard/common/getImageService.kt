@@ -43,11 +43,11 @@ suspend fun  getImageUrl2(text:String):String {
 // Retrofit tarafından oluşturulan API servisi
         val serviceImages = retrofitImages.create(ApiService::class.java)
         val urrr=serviceImages.getImages(
-    apiKey = "df0e0b9ff7msh5e0b3c6e26ff767p1b6b6bjsn264a19ea3f64",
+    apiKey = "*************************",
     apiHost = "free-images-api.p.rapidapi.com",text).results[0].image
 // API çağrısını gerçekleştir
        print(serviceImages.getImages(
-           apiKey = "df0e0b9ff7msh5e0b3c6e26ff767p1b6b6bjsn264a19ea3f64",
+           apiKey = "******************",
            apiHost = "free-images-api.p.rapidapi.com",text).results.toString()+"HATAM")
         return  urrr
     }catch (e:Exception){
