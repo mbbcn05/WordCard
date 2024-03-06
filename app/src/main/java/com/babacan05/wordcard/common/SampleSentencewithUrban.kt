@@ -9,7 +9,7 @@ import retrofit2.http.Query
 interface UrbanDictionaryService {
     @GET("define")
     suspend fun defineTerm(@Query("term") term: String,
-                           @Header("X-RapidAPI-Key") apiKey: String="df0e0b9ff7msh5e0b3c6e26ff767p1b6b6bjsn264a19ea3f64",
+                           @Header("X-RapidAPI-Key") apiKey: String="********",
                            @Header("X-RapidAPI-Host") host: String="mashape-community-urban-dictionary.p.rapidapi.com"): DefinitionResponse
 }
 val retrofitUrban = Retrofit.Builder()
