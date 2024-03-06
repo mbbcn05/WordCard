@@ -35,7 +35,7 @@ val retrofitTranslator = Retrofit.Builder()
 val serviceTranslator = retrofitTranslator.create(TranslatorService::class.java)
 
 suspend fun getTranslator(toLanguage:String,text:String):String{
-    val apiKey = "df0e0b9ff7msh5e0b3c6e26ff767p1b6b6bjsn264a19ea3f64"
+    val apiKey = "***********************"
     val sourceLanguage = "auto"
 
 
