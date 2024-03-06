@@ -17,8 +17,8 @@ android {
         applicationId = "com.babacan05.wordcard"
         minSdk = 24
         targetSdk = 33
-        versionCode = 4
-        versionName = "4.0"
+        versionCode = 9
+        versionName = "9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -72,7 +72,7 @@ dependencies {
     debugImplementation ("androidx.compose.ui:ui-test-manifest:1.6.1")
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation ("com.google.firebase:firebase-auth-ktx:22.3.1")
-    implementation ("com.google.android.gms:play-services-auth:20.7.0")
+    implementation ("com.google.android.gms:play-services-auth:21.0.0")
 
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")

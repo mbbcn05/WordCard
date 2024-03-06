@@ -191,7 +191,7 @@ var mydp by remember{
                     }
                 }
             }
-            AnimatedVisibility( modifier = Modifier.padding(horizontal = 30.dp, vertical = 0.dp),visible = textFieldVisible,) {
+            AnimatedVisibility( modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp),visible = textFieldVisible,) {
                 OutlinedTextField(
                     shape = RoundedCornerShape(20.dp),
                     colors = customTextFieldColors,

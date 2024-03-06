@@ -36,7 +36,7 @@ object NotificationUtils {
 
             .setContentTitle("Your next word...")
             .setContentText(card.word.uppercase())
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.mipmap.ic_launcher_foreground)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 

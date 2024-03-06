@@ -22,7 +22,7 @@ fun AdMobBanner() {
         factory = {
             AdView(it).apply {
                 setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, currentWidth))
-                adUnitId = "ca-app-pub-1329781431864366/5573685836"
+                adUnitId = "*********"
                 loadAd(AdRequest.Builder().build())
             }
         }
@@ -34,7 +34,7 @@ fun AdMobBanner() {
 fun AdBanner() {
     val adView = AdView(LocalContext.current)
     adView.setAdSize(AdSize.BANNER)
-    adView.adUnitId = "ca-app-pub-1329781431864366/5573685836" // AdMob'dan aldığınız Banner Ad Unit ID
+    adView.adUnitId = "*****"
 
     AndroidView(
         modifier = Modifier.fillMaxSize(),
@@ -47,7 +47,7 @@ fun AdBanner() {
 fun showInterstitialAd(activity: Activity) {
     InterstitialAd.load(
         activity,
-        "ca-app-pub-1329781431864366/6144176253", //Change this with your own AdUnitID!
+        "********",
         AdRequest.Builder().build(),
         object : InterstitialAdLoadCallback() {
             override fun onAdFailedToLoad(adError: LoadAdError) {
